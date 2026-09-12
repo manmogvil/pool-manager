@@ -1,4 +1,4 @@
-# Lottery Pool Manager
+# Pool Manager
 
 A personal web application designed to manage a group of people who participate together in weekly lottery draws. Built as a learning project to practice **Go backend development**, **PostgreSQL**, and **REST API design**.
 
