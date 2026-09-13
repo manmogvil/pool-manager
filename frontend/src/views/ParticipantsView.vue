@@ -1,0 +1,20 @@
+<script setup>
+import ParticipantsTable from '../components/participants/ParticipantsTable.vue'
+</script>
+
+<template>
+  <v-container fluid class="view-container">
+    <h1 class="text-h5 font-weight-bold view-title">Participants</h1>
+    <ParticipantsTable />
+  </v-container>
+</template>
+
+<style scoped>
+.view-container {
+  padding: 24px;
+}
+
+.view-title {
+  margin-bottom: 24px;
+}
+</style>
