@@ -17,6 +17,7 @@ This application simplifies the management of lottery pools by tracking particip
 - Chi (HTTP router)
 - PostgreSQL
 - pgx (database driver)
+- Unit & integration tests (Go `testing` package)
 
 **Frontend**
 - Vue 3
@@ -26,6 +27,7 @@ This application simplifies the management of lottery pools by tracking particip
 **Infrastructure**
 - Docker
 - Docker Compose
+- GitHub Actions (CI/CD)
 
 ---
 
@@ -227,6 +229,8 @@ This project was built to practice:
 - **Database design**: relationships, constraints, migrations
 - **Code organization**: clean architecture, separation of concerns
 - **Input validation**: request validation, error handling
+- **Testing**: unit tests (mocked store), integration tests (real PostgreSQL), Go `testing` package
+- **CI/CD**: GitHub Actions pipeline for automated test execution
 - **Docker**: containerization, database setup
 
 ---
