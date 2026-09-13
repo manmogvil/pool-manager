@@ -5,7 +5,7 @@ import (
 )
 
 type mockTicketStore struct {
-	createFn      func(drawID int, numbers, stars string, cost float64) (models.Ticket, error)
+	createFn      func(drawID int, numbers string, stars *string, cost float64) (models.Ticket, error)
 	getAllFn      func() ([]models.Ticket, error)
 	getByIDFn     func(id int) (models.Ticket, error)
 	getByDrawFn   func(drawID int) ([]models.Ticket, error)
@@ -13,7 +13,7 @@ type mockTicketStore struct {
 	deleteFn      func(id int) error
 }
 
-func (m *mockTicketStore) CreateTicket(drawID int, numbers, stars string, cost float64) (models.Ticket, error) {
+func (m *mockTicketStore) CreateTicket(drawID int, numbers string, stars *string, cost float64) (models.Ticket, error) {
 	return m.createFn(drawID, numbers, stars, cost)
 }
 func (m *mockTicketStore) GetAllTickets() ([]models.Ticket, error) {

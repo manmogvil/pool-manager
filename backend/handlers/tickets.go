@@ -11,7 +11,7 @@ import (
 )
 
 type TicketStore interface {
-	CreateTicket(drawID int, numbers, stars string, cost float64) (models.Ticket, error)
+	CreateTicket(drawID int, numbers string, stars *string, cost float64) (models.Ticket, error)
 	GetAllTickets() ([]models.Ticket, error)
 	GetTicketByID(id int) (models.Ticket, error)
 	GetTicketsByDraw(drawID int) ([]models.Ticket, error)
@@ -71,7 +71,7 @@ func (h *TicketHandler) GetByDraw(w http.ResponseWriter, r *http.Request) {
 type createTicketRequest struct {
 	DrawID  int     `json:"draw_id"`
 	Numbers string  `json:"numbers"`
-	Stars   string  `json:"stars"`
+	Stars   *string `json:"stars"`
 	Cost    float64 `json:"cost"`
 }
 

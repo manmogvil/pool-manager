@@ -36,7 +36,7 @@ func (s *PostgreSQLStore) GetAllContributions() ([]models.Contribution, error) {
 	}
 	defer rows.Close()
 
-	var contributions []models.Contribution
+	contributions := make([]models.Contribution, 0)
 	for rows.Next() {
 		var c models.Contribution
 		if err := rows.Scan(&c.ID, &c.ParticipantID, &c.GameID, &c.Month, &c.Year, &c.Amount,
@@ -77,7 +77,7 @@ func (s *PostgreSQLStore) GetContributionsByParticipant(participantID int) ([]mo
 	}
 	defer rows.Close()
 
-	var contributions []models.Contribution
+	contributions := make([]models.Contribution, 0)
 	for rows.Next() {
 		var c models.Contribution
 		if err := rows.Scan(&c.ID, &c.ParticipantID, &c.GameID, &c.Month, &c.Year, &c.Amount,
@@ -99,7 +99,7 @@ func (s *PostgreSQLStore) GetContributionsByPeriod(month, year int) ([]models.Co
 	}
 	defer rows.Close()
 
-	var contributions []models.Contribution
+	contributions := make([]models.Contribution, 0)
 	for rows.Next() {
 		var c models.Contribution
 		if err := rows.Scan(&c.ID, &c.ParticipantID, &c.GameID, &c.Month, &c.Year, &c.Amount,

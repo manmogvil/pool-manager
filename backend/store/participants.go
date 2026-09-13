@@ -34,7 +34,7 @@ func (s *PostgreSQLStore) GetAllParticipants() ([]models.Participant, error) {
 	}
 	defer rows.Close()
 
-	var participants []models.Participant
+	participants := make([]models.Participant, 0)
 	for rows.Next() {
 		var p models.Participant
 		if err := rows.Scan(&p.ID, &p.Name, &p.Email, &p.Active, &p.CreatedAt); err != nil {

@@ -6,6 +6,10 @@ import (
 	"lottery-pool-manager/models"
 )
 
+func strPtr(s string) *string {
+	return &s
+}
+
 func TestStore_CreateContribution(t *testing.T) {
 	cleanup(t)
 

@@ -10,11 +10,15 @@ import (
 	"lottery-pool-manager/models"
 )
 
+func ticketStrPtr(s string) *string {
+	return &s
+}
+
 func TestTicketHandler_List_Success(t *testing.T) {
 	mock := &mockTicketStore{
 		getAllFn: func() ([]models.Ticket, error) {
 			return []models.Ticket{
-				{ID: 1, DrawID: 1, Numbers: "5,12,23,34,45", Stars: "3,7", Cost: 2.50, PurchasedAt: time.Now()},
+				{ID: 1, DrawID: 1, Numbers: "5,12,23,34,45", Stars: ticketStrPtr("3,7"), Cost: 2.50, PurchasedAt: time.Now()},
 			}, nil
 		},
 	}
@@ -36,7 +40,7 @@ func TestTicketHandler_List_Success(t *testing.T) {
 
 func TestTicketHandler_Create_Success(t *testing.T) {
 	mock := &mockTicketStore{
-		createFn: func(drawID int, numbers, stars string, cost float64) (models.Ticket, error) {
+		createFn: func(drawID int, numbers string, stars *string, cost float64) (models.Ticket, error) {
 			return models.Ticket{ID: 1, DrawID: drawID, Numbers: numbers, Stars: stars, Cost: cost, PurchasedAt: time.Now()}, nil
 		},
 	}
@@ -83,7 +87,7 @@ func TestTicketHandler_UpdatePrize_Success(t *testing.T) {
 	mock := &mockTicketStore{
 		updatePrizeFn: func(id int, prizeTier *string, prizeAmount *float64, matchedNumbers *int, matchedStars *int) (models.Ticket, error) {
 			return models.Ticket{
-				ID: id, DrawID: 1, Numbers: "5,12,23,34,45", Stars: "3,7", Cost: 2.50,
+				ID: id, DrawID: 1, Numbers: "5,12,23,34,45", Stars: ticketStrPtr("3,7"), Cost: 2.50,
 				PrizeTier: prizeTier, PrizeAmount: prizeAmount, MatchedNumbers: matchedNumbers, MatchedStars: matchedStars,
 			}, nil
 		},

@@ -9,7 +9,7 @@ import (
 	"lottery-pool-manager/models"
 )
 
-func (s *PostgreSQLStore) CreateTicket(drawID int, numbers, stars string, cost float64) (models.Ticket, error) {
+func (s *PostgreSQLStore) CreateTicket(drawID int, numbers string, stars *string, cost float64) (models.Ticket, error) {
 	var t models.Ticket
 
 	err := s.pool.QueryRow(context.Background(),
@@ -36,7 +36,7 @@ func (s *PostgreSQLStore) GetAllTickets() ([]models.Ticket, error) {
 	}
 	defer rows.Close()
 
-	var tickets []models.Ticket
+	tickets := make([]models.Ticket, 0)
 	for rows.Next() {
 		var t models.Ticket
 		if err := rows.Scan(&t.ID, &t.DrawID, &t.Numbers, &t.Stars, &t.Cost, &t.PurchasedAt,
@@ -77,7 +77,7 @@ func (s *PostgreSQLStore) GetTicketsByDraw(drawID int) ([]models.Ticket, error) 
 	}
 	defer rows.Close()
 
-	var tickets []models.Ticket
+	tickets := make([]models.Ticket, 0)
 	for rows.Next() {
 		var t models.Ticket
 		if err := rows.Scan(&t.ID, &t.DrawID, &t.Numbers, &t.Stars, &t.Cost, &t.PurchasedAt,

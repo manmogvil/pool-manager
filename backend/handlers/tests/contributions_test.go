@@ -90,6 +90,16 @@ func TestContributionHandler_Create_InvalidPaymentMethod(t *testing.T) {
 	}
 }
 
+func TestContributionHandler_Create_MissingPaymentMethod(t *testing.T) {
+	mock := &mockContributionStore{}
+	rr := doContributionRequest(t, mock, "POST", "/contributions",
+		`{"participant_id": 1, "game_id": 1, "month": 1, "year": 2024, "amount": 5.00}`)
+
+	if rr.Code != http.StatusBadRequest {
+		t.Errorf("status code = %v, want %v", rr.Code, http.StatusBadRequest)
+	}
+}
+
 func TestContributionHandler_Update_Success(t *testing.T) {
 	mock := &mockContributionStore{
 		updateFn: func(id int, c *models.Contribution) (models.Contribution, error) {

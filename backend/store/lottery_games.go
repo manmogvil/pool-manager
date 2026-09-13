@@ -34,7 +34,7 @@ func (s *PostgreSQLStore) GetAllLotteryGames() ([]models.LotteryGame, error) {
 	}
 	defer rows.Close()
 
-	var games []models.LotteryGame
+	games := make([]models.LotteryGame, 0)
 	for rows.Next() {
 		var g models.LotteryGame
 		if err := rows.Scan(&g.ID, &g.Name, &g.DrawDays, &g.TicketPrice, &g.Active); err != nil {

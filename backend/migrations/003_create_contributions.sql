@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS contributions (
     amount         DECIMAL(10, 2) NOT NULL,
     paid           BOOLEAN NOT NULL DEFAULT false,
     payment_date   DATE,
-    payment_method VARCHAR(50) CHECK (payment_method IN ('CASH', 'BIZUM')),
+    payment_method VARCHAR(50) NOT NULL CHECK (payment_method IN ('CASH', 'BIZUM')),
     comments       TEXT,
     created_at     TIMESTAMP NOT NULL DEFAULT NOW()
 );

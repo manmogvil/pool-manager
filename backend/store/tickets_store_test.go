@@ -11,7 +11,7 @@ func TestStore_CreateTicket(t *testing.T) {
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 	draw := seedDraw(t, game.ID, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
 
-	ticket, err := testStore.CreateTicket(draw.ID, "5,12,23,34,45", "3,7", 2.50)
+	ticket, err := testStore.CreateTicket(draw.ID, "5,12,23,34,45", strPtr("3,7"), 2.50)
 	if err != nil {
 		t.Fatalf("CreateTicket failed: %v", err)
 	}
@@ -29,8 +29,8 @@ func TestStore_GetAllTickets(t *testing.T) {
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 	draw := seedDraw(t, game.ID, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
 
-	_, _ = testStore.CreateTicket(draw.ID, "1,2,3,4,5", "1,2", 2.50)
-	_, _ = testStore.CreateTicket(draw.ID, "6,7,8,9,10", "3,4", 2.50)
+	_, _ = testStore.CreateTicket(draw.ID, "1,2,3,4,5", strPtr("1,2"), 2.50)
+	_, _ = testStore.CreateTicket(draw.ID, "6,7,8,9,10", strPtr("3,4"), 2.50)
 
 	tickets, err := testStore.GetAllTickets()
 	if err != nil {
@@ -47,7 +47,7 @@ func TestStore_GetTicketByID(t *testing.T) {
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 	draw := seedDraw(t, game.ID, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
 
-	created, _ := testStore.CreateTicket(draw.ID, "5,12,23,34,45", "3,7", 2.50)
+	created, _ := testStore.CreateTicket(draw.ID, "5,12,23,34,45", strPtr("3,7"), 2.50)
 
 	ticket, err := testStore.GetTicketByID(created.ID)
 	if err != nil {
@@ -74,9 +74,9 @@ func TestStore_GetTicketsByDraw(t *testing.T) {
 	draw1 := seedDraw(t, game.ID, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
 	draw2 := seedDraw(t, game.ID, time.Date(2024, 1, 22, 0, 0, 0, 0, time.UTC))
 
-	_, _ = testStore.CreateTicket(draw1.ID, "1,2,3,4,5", "1,2", 2.50)
-	_, _ = testStore.CreateTicket(draw1.ID, "6,7,8,9,10", "3,4", 2.50)
-	_, _ = testStore.CreateTicket(draw2.ID, "11,12,13,14,15", "5,6", 2.50)
+	_, _ = testStore.CreateTicket(draw1.ID, "1,2,3,4,5", strPtr("1,2"), 2.50)
+	_, _ = testStore.CreateTicket(draw1.ID, "6,7,8,9,10", strPtr("3,4"), 2.50)
+	_, _ = testStore.CreateTicket(draw2.ID, "11,12,13,14,15", strPtr("5,6"), 2.50)
 
 	tickets, err := testStore.GetTicketsByDraw(draw1.ID)
 	if err != nil {
@@ -93,7 +93,7 @@ func TestStore_UpdateTicketPrize(t *testing.T) {
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 	draw := seedDraw(t, game.ID, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
 
-	created, _ := testStore.CreateTicket(draw.ID, "5,12,23,34,45", "3,7", 2.50)
+	created, _ := testStore.CreateTicket(draw.ID, "5,12,23,34,45", strPtr("3,7"), 2.50)
 
 	prizeTier := "5th"
 	prizeAmount := 50.0
@@ -128,7 +128,7 @@ func TestStore_DeleteTicket(t *testing.T) {
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 	draw := seedDraw(t, game.ID, time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC))
 
-	created, _ := testStore.CreateTicket(draw.ID, "5,12,23,34,45", "3,7", 2.50)
+	created, _ := testStore.CreateTicket(draw.ID, "5,12,23,34,45", strPtr("3,7"), 2.50)
 
 	err := testStore.DeleteTicket(created.ID)
 	if err != nil {

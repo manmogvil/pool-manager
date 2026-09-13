@@ -48,7 +48,7 @@ func (s *PostgreSQLStore) GetAllDraws() ([]models.Draw, error) {
 	}
 	defer rows.Close()
 
-	var draws []models.Draw
+	draws := make([]models.Draw, 0)
 	for rows.Next() {
 		var d models.Draw
 		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt); err != nil {
@@ -87,7 +87,7 @@ func (s *PostgreSQLStore) GetDrawsByGame(gameID int) ([]models.Draw, error) {
 	}
 	defer rows.Close()
 
-	var draws []models.Draw
+	draws := make([]models.Draw, 0)
 	for rows.Next() {
 		var d models.Draw
 		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt); err != nil {
@@ -108,7 +108,7 @@ func (s *PostgreSQLStore) GetPendingDraws() ([]models.Draw, error) {
 	}
 	defer rows.Close()
 
-	var draws []models.Draw
+	draws := make([]models.Draw, 0)
 	for rows.Next() {
 		var d models.Draw
 		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt); err != nil {

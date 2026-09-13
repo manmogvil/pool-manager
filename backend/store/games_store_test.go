@@ -129,7 +129,7 @@ func TestStore_DeleteLotteryGame_HasTickets(t *testing.T) {
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 	draw := seedDraw(t, game.ID, time.Now().AddDate(0, 0, 7))
 
-	_, err := testStore.CreateTicket(draw.ID, "1,2,3,4,5", "1,2", 2.50)
+	_, err := testStore.CreateTicket(draw.ID, "1,2,3,4,5", strPtr("1,2"), 2.50)
 	if err != nil {
 		t.Fatalf("CreateTicket failed: %v", err)
 	}

@@ -118,7 +118,10 @@ func validateContributionRequest(req *createContributionRequest) error {
 	if req.Amount <= 0 {
 		return &utils.ValidationError{Field: "amount", Message: "must be greater than 0"}
 	}
-	if req.PaymentMethod != "" && req.PaymentMethod != "CASH" && req.PaymentMethod != "BIZUM" {
+	if req.PaymentMethod == "" {
+		return &utils.ValidationError{Field: "payment_method", Message: "is required"}
+	}
+	if req.PaymentMethod != "CASH" && req.PaymentMethod != "BIZUM" {
 		return &utils.ValidationError{Field: "payment_method", Message: "must be 'CASH' or 'BIZUM'"}
 	}
 	return nil
