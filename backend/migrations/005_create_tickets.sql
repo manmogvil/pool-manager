@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS tickets (
     matched_stars   INTEGER
 );
 
-CREATE INDEX idx_tickets_draw ON tickets(draw_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_draw ON tickets(draw_id);

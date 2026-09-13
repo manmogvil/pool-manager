@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS draws (
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_draws_game_date ON draws(game_id, draw_date);
+CREATE INDEX IF NOT EXISTS idx_draws_game_date ON draws(game_id, draw_date);
