@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"lottery-pool-manager/handlers"
 	"lottery-pool-manager/store"
@@ -24,6 +25,14 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -36,6 +45,7 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 		r.Get("/{id}", participantHandler.GetByID)
 		r.Post("/", participantHandler.Create)
 		r.Put("/{id}", participantHandler.Update)
+		r.Put("/{id}/activate", participantHandler.Activate)
 		r.Delete("/{id}", participantHandler.Deactivate)
 	})
 

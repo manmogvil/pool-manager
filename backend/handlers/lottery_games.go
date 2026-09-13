@@ -98,30 +98,33 @@ func (h *LotteryGameHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req createLotteryGameRequest
+	type updateRequest struct {
+		Name        string  `json:"name"`
+		DrawDays    string  `json:"draw_days"`
+		TicketPrice float64 `json:"ticket_price"`
+		Active      bool    `json:"active"`
+	}
+
+	var req updateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if err := validateLotteryGameRequest(&req); err != nil {
-		utils.RespondValidationError(w, err.(*utils.ValidationError))
+	if req.Name == "" {
+		utils.RespondError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+	if req.DrawDays == "" {
+		utils.RespondError(w, http.StatusBadRequest, "draw_days is required")
+		return
+	}
+	if req.TicketPrice <= 0 {
+		utils.RespondError(w, http.StatusBadRequest, "ticket_price must be greater than 0")
 		return
 	}
 
-	type updateRequest struct {
-		createLotteryGameRequest
-		Active bool `json:"active"`
-	}
-
-	var updateReq updateRequest
-	updateReq.Name = req.Name
-	updateReq.DrawDays = req.DrawDays
-	updateReq.TicketPrice = req.TicketPrice
-
-	json.NewDecoder(r.Body).Decode(&updateReq)
-
-	g, err := h.store.UpdateLotteryGame(id, updateReq.Name, updateReq.DrawDays, updateReq.TicketPrice, updateReq.Active)
+	g, err := h.store.UpdateLotteryGame(id, req.Name, req.DrawDays, req.TicketPrice, req.Active)
 	if err != nil {
 		utils.RespondError(w, http.StatusNotFound, err.Error())
 		return

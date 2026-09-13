@@ -16,6 +16,7 @@ type ParticipantStore interface {
 	CreateParticipant(name, email string) (models.Participant, error)
 	UpdateParticipant(id int, name, email string) (models.Participant, error)
 	DeactivateParticipant(id int) (models.Participant, error)
+	ActivateParticipant(id int) (models.Participant, error)
 }
 
 type ParticipantHandler struct {
@@ -120,6 +121,22 @@ func (h *ParticipantHandler) Deactivate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	p, err := h.store.DeactivateParticipant(id)
+	if err != nil {
+		utils.RespondError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	utils.RespondJSON(w, http.StatusOK, p)
+}
+
+func (h *ParticipantHandler) Activate(w http.ResponseWriter, r *http.Request) {
+	id, err := utils.ParseID(chi.URLParam(r, "id"))
+	if err != nil {
+		utils.RespondError(w, http.StatusBadRequest, "invalid participant id")
+		return
+	}
+
+	p, err := h.store.ActivateParticipant(id)
 	if err != nil {
 		utils.RespondError(w, http.StatusNotFound, err.Error())
 		return

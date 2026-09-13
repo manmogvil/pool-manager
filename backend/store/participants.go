@@ -104,3 +104,24 @@ func (s *PostgreSQLStore) DeactivateParticipant(id int) (models.Participant, err
 
 	return p, nil
 }
+
+func (s *PostgreSQLStore) ActivateParticipant(id int) (models.Participant, error) {
+	var p models.Participant
+
+	err := s.pool.QueryRow(context.Background(),
+		`UPDATE participants
+		 SET active = true
+		 WHERE id = $1
+		 RETURNING id, name, email, active, created_at`,
+		id,
+	).Scan(&p.ID, &p.Name, &p.Email, &p.Active, &p.CreatedAt)
+
+	if err == pgx.ErrNoRows {
+		return models.Participant{}, fmt.Errorf("participant %d not found", id)
+	}
+	if err != nil {
+		return models.Participant{}, fmt.Errorf("error activating participant: %w", err)
+	}
+
+	return p, nil
+}

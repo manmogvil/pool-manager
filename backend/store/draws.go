@@ -10,10 +10,22 @@ import (
 	"lottery-pool-manager/models"
 )
 
-func (s *PostgreSQLStore) CreateDraw(gameID *int, drawDate time.Time) (models.Draw, error) {
+func (s *PostgreSQLStore) CreateDraw(gameID int, drawDate time.Time) (models.Draw, error) {
 	var d models.Draw
 
+	var exists bool
 	err := s.pool.QueryRow(context.Background(),
+		`SELECT EXISTS(SELECT 1 FROM draws WHERE game_id = $1 AND draw_date = $2)`,
+		gameID, drawDate,
+	).Scan(&exists)
+	if err != nil {
+		return models.Draw{}, fmt.Errorf("error checking existing draw: %w", err)
+	}
+	if exists {
+		return models.Draw{}, fmt.Errorf("a draw already exists for this game on %s", drawDate.Format("2006-01-02"))
+	}
+
+	err = s.pool.QueryRow(context.Background(),
 		`INSERT INTO draws (game_id, draw_date)
 		 VALUES ($1, $2)
 		 RETURNING id, game_id, draw_date, result_numbers, result_stars, processed, created_at`,

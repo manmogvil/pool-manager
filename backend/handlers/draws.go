@@ -12,7 +12,7 @@ import (
 )
 
 type DrawStore interface {
-	CreateDraw(gameID *int, drawDate time.Time) (models.Draw, error)
+	CreateDraw(gameID int, drawDate time.Time) (models.Draw, error)
 	GetAllDraws() ([]models.Draw, error)
 	GetDrawByID(id int) (models.Draw, error)
 	GetDrawsByGame(gameID int) ([]models.Draw, error)
@@ -81,7 +81,7 @@ func (h *DrawHandler) GetPending(w http.ResponseWriter, r *http.Request) {
 }
 
 type createDrawRequest struct {
-	GameID   *int   `json:"game_id"`
+	GameID   int    `json:"game_id"`
 	DrawDate string `json:"draw_date"`
 }
 
@@ -89,6 +89,11 @@ func (h *DrawHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req createDrawRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.GameID == 0 {
+		utils.RespondError(w, http.StatusBadRequest, "game_id is required")
 		return
 	}
 
@@ -105,7 +110,7 @@ func (h *DrawHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	d, err := h.store.CreateDraw(req.GameID, drawDate)
 	if err != nil {
-		utils.RespondError(w, http.StatusInternalServerError, "error creating draw")
+		utils.RespondError(w, http.StatusConflict, err.Error())
 		return
 	}
 
