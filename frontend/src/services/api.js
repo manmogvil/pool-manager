@@ -1,20 +1,36 @@
 const API_BASE = "http://localhost:8080";
 
 async function request(url, options = {}) {
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Request failed");
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      signal: controller.signal,
+      ...options,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Request failed");
+    }
+
+    return response.json();
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Server timeout. Check if backend is running on port 8080.");
+    }
+    if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
+      throw new Error("Cannot connect to server. Check if backend is running on port 8080.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return response.json();
 }
 
 export const participants = {

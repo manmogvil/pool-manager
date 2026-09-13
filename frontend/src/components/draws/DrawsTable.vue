@@ -71,7 +71,7 @@ async function handleSaved(data) {
 
 async function markAsProcessed(draw) {
   try {
-    await draws.markAsProcessed(draw.id)
+    await drawsService.markAsProcessed(draw.id)
     showSnackbar('Draw marked as processed', 'success')
     await loadData()
   } catch (error) {
