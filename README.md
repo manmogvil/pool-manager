@@ -1,4 +1,4 @@
-# Pool Manager
+# Lottery Pool Manager
 
 A personal web application designed to manage a group of people who participate together in weekly lottery draws. Built as a learning project to practice **Go backend development**, **PostgreSQL**, and **REST API design**.
 
@@ -37,9 +37,15 @@ This application simplifies the management of lottery pools by tracking particip
 lottery-pool-manager/
 ├── backend/
 │   ├── main.go                 # Server entry point
+│   ├── .env                    # Environment variables (not in git)
+│   ├── .env.example            # Environment template
 │   ├── routes/                 # Route definitions
 │   ├── handlers/               # HTTP request handlers
+│   │   ├── check_ticket.go     # Ticket verification handler
+│   │   ├── loteria_api.go      # Loteria API handler
 │   │   └── tests/              # Handler unit tests
+│   ├── services/               # External API clients
+│   │   └── loteria_api.go      # Loteria API client
 │   ├── store/                  # Database operations
 │   │   └── integration_test.go # Store integration tests
 │   ├── models/                 # Data structures
@@ -74,13 +80,20 @@ lottery-pool-manager/
 ### Draws
 - Create draws for specific dates
 - Record official results
-- Track processing status
+- Fetch results from Loteria API
 - View draws by game
 
 ### Tickets
 - Register tickets with played numbers
+- Check prizes against Loteria API
 - Track prizes and matched numbers
 - View tickets by draw
+
+### Loteria API Integration
+- Fetch results by date range (Monday batch)
+- Check individual tickets against API
+- Dual API key support with automatic fallback
+- Rate limit handling (429/403)
 
 ---
 
@@ -92,16 +105,55 @@ lottery-pool-manager/
 | GET | /participants | List participants |
 | POST | /participants | Create participant |
 | PUT | /participants/{id} | Update participant |
+| PUT | /participants/{id}/activate | Activate participant |
 | DELETE | /participants/{id} | Deactivate participant |
 | GET | /contributions | List contributions |
 | POST | /contributions | Create contribution |
+| GET | /contributions/period | Get contributions by period |
+| GET | /contributions/participant/{id} | Get contributions by participant |
 | GET | /games | List lottery games |
 | POST | /games | Create lottery game |
+| PUT | /games/{id} | Update lottery game |
+| DELETE | /games/{id} | Delete lottery game |
 | GET | /draws | List draws |
 | POST | /draws | Create draw |
 | PUT | /draws/{id}/results | Update draw results |
+| PUT | /draws/{id}/process | Mark draw as processed |
+| DELETE | /draws/{id} | Delete draw |
+| GET | /draws/pending | Get pending draws |
+| GET | /draws/game/{id} | Get draws by game |
 | GET | /tickets | List tickets |
 | POST | /tickets | Create ticket |
+| PUT | /tickets/{id}/prize | Update ticket prize |
+| DELETE | /tickets/{id} | Delete ticket |
+| GET | /tickets/draw/{id} | Get tickets by draw |
+| POST | /loteria-api/fetch-results | Fetch results from API |
+| POST | /check-ticket | Check ticket against API |
+
+---
+
+## Environment Variables
+
+Create a `.env` file in `backend/` based on `.env.example`:
+
+```env
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=lottery
+DB_PASSWORD=lottery123
+DB_NAME=lottery_pool
+
+# Loteria API (comma-separated for fallback)
+LOTERIA_API_KEY=your_api_key_1,your_api_key_2
+
+# Server
+BASE_URL=http://localhost:8080
+PORT=8080
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+```
 
 ---
 
@@ -191,8 +243,8 @@ backend/
 │   └── helpers_test.go              # Utils tests (6 tests)
 ├── handlers/tests/
 │   ├── helpers_test.go              # Shared test helpers
-│   ├── mock_*_test.go              # Mocks per module (5 files)
-│   └── *_test.go                   # Handler tests (44 tests)
+│   ├── mock_*_test.go              # Mocks per module (6 files)
+│   └── *_test.go                   # Handler tests (56 tests)
 └── store/
     ├── setup_test.go               # Test DB setup + cleanup
     ├── *_store_test.go             # Store tests (45 tests)
@@ -232,6 +284,8 @@ This project was built to practice:
 - **Testing**: unit tests (mocked store), integration tests (real PostgreSQL), Go `testing` package
 - **CI/CD**: GitHub Actions pipeline for automated test execution
 - **Docker**: containerization, database setup
+- **External APIs**: integrating with third-party services
+- **Environment variables**: secure configuration management
 
 ---
 
@@ -241,18 +295,8 @@ This project was built to practice:
 - **store/**: Database operations (PostgreSQL) + integration tests
 - **handlers/**: HTTP request handlers
   - **tests/**: Handler unit tests with mocked store
+- **services/**: External API clients (Loteria API)
 - **routes/**: API route definitions
 - **utils/**: Shared utility functions
 - **migrations/**: SQL schema files (used by app and tests)
 - **frontend/**: Vue 3 application (Vuetify)
-
----
-
-## Future Improvements
-
-- [ ] Prize calculation logic
-- [ ] User authentication
-- [ ] Notification system
-- [ ] Background workers for result processing
-- [ ] Prometheus metrics
-- [ ] Grafana dashboards
