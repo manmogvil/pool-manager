@@ -115,3 +115,20 @@ func (s *PostgreSQLStore) DeleteLotteryGame(id int) error {
 
 	return nil
 }
+
+func (s *PostgreSQLStore) GetLotteryGameByName(name string) (models.LotteryGame, error) {
+	var g models.LotteryGame
+
+	err := s.pool.QueryRow(context.Background(),
+		`SELECT id, name, draw_days, ticket_price, active FROM lottery_games WHERE name = $1`, name,
+	).Scan(&g.ID, &g.Name, &g.DrawDays, &g.TicketPrice, &g.Active)
+
+	if err == pgx.ErrNoRows {
+		return models.LotteryGame{}, fmt.Errorf("lottery game %s not found", name)
+	}
+	if err != nil {
+		return models.LotteryGame{}, fmt.Errorf("error querying lottery game: %w", err)
+	}
+
+	return g, nil
+}

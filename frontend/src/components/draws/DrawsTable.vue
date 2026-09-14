@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { draws as drawsService, games as gamesService } from '../../services/api'
 import DrawsFormDialog from './DrawsFormDialog.vue'
+import FetchResultsDialog from './FetchResultsDialog.vue'
 
 const drawList = ref([])
 const gameList = ref([])
@@ -9,6 +10,8 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const selectedDraw = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success' })
+
+const fetchDialogVisible = ref(false)
 
 async function loadData() {
   loading.value = true
@@ -47,6 +50,19 @@ function openEditDialog(draw) {
   dialogVisible.value = true
 }
 
+function openFetchDialog() {
+  fetchDialogVisible.value = true
+}
+
+function handleFetchSaved(result) {
+  if (result.error) {
+    showSnackbar(result.error, 'error')
+  } else {
+    showSnackbar(result.message || 'Results fetched', 'success')
+    loadData()
+  }
+}
+
 async function handleSaved(data) {
   try {
     if (data.id) {
@@ -63,16 +79,6 @@ async function handleSaved(data) {
       showSnackbar('Draw created', 'success')
     }
     dialogVisible.value = false
-    await loadData()
-  } catch (error) {
-    showSnackbar(error.message, 'error')
-  }
-}
-
-async function markAsProcessed(draw) {
-  try {
-    await drawsService.markAsProcessed(draw.id)
-    showSnackbar('Draw marked as processed', 'success')
     await loadData()
   } catch (error) {
     showSnackbar(error.message, 'error')
@@ -101,6 +107,10 @@ onMounted(() => {
 <template>
   <div>
     <div class="table-header">
+      <v-btn color="secondary" @click="openFetchDialog" class="mr-2">
+        <v-icon start>mdi-cloud-download</v-icon>
+        Fetch Results
+      </v-btn>
       <v-btn color="primary" @click="openCreateDialog">
         <v-icon start>mdi-plus</v-icon>
         Add Draw
@@ -115,8 +125,7 @@ onMounted(() => {
           { title: 'Date', key: 'draw_date', width: '120px' },
           { title: 'Numbers', key: 'result_numbers', width: '150px' },
           { title: 'Stars', key: 'result_stars', width: '120px' },
-          { title: 'Processed', key: 'processed', width: '110px', sortable: true },
-          { title: 'Actions', key: 'actions', width: '150px', sortable: false }
+          { title: 'Actions', key: 'actions', width: '120px', sortable: false }
         ]"
         :items="drawList"
         :loading="loading"
@@ -140,23 +149,17 @@ onMounted(() => {
           <span v-else class="text-grey">-</span>
         </template>
 
-        <template v-slot:item.processed="{ item }">
-          <v-chip :color="item.processed ? 'success' : 'warning'" size="small">
-            {{ item.processed ? 'Yes' : 'No' }}
-          </v-chip>
-        </template>
-
         <template v-slot:item.actions="{ item }">
-          <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEditDialog(item)" />
-          <v-btn
-            v-if="!item.processed"
-            icon="mdi-check-circle"
-            variant="text"
-            size="small"
-            color="success"
-            @click="markAsProcessed(item)"
-          />
-          <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="deleteDraw(item)" />
+          <v-tooltip location="top" text="Edit draw results">
+            <template v-slot:activator="{ props }">
+              <v-btn icon="mdi-pencil" variant="text" size="small" v-bind="props" @click="openEditDialog(item)" />
+            </template>
+          </v-tooltip>
+          <v-tooltip location="top" text="Delete draw">
+            <template v-slot:activator="{ props }">
+              <v-btn icon="mdi-delete" variant="text" size="small" color="error" v-bind="props" @click="deleteDraw(item)" />
+            </template>
+          </v-tooltip>
         </template>
       </v-data-table>
     </v-card>
@@ -166,6 +169,11 @@ onMounted(() => {
       :draw="selectedDraw"
       :games="gameList"
       @saved="handleSaved"
+    />
+
+    <FetchResultsDialog
+      v-model:visible="fetchDialogVisible"
+      @saved="handleFetchSaved"
     />
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">

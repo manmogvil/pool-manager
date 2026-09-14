@@ -28,9 +28,9 @@ func (s *PostgreSQLStore) CreateDraw(gameID int, drawDate time.Time) (models.Dra
 	err = s.pool.QueryRow(context.Background(),
 		`INSERT INTO draws (game_id, draw_date)
 		 VALUES ($1, $2)
-		 RETURNING id, game_id, draw_date, result_numbers, result_stars, processed, created_at`,
+		 RETURNING id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at`,
 		gameID, drawDate,
-	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt)
+	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt)
 
 	if err != nil {
 		return models.Draw{}, fmt.Errorf("error creating draw: %w", err)
@@ -41,7 +41,7 @@ func (s *PostgreSQLStore) CreateDraw(gameID int, drawDate time.Time) (models.Dra
 
 func (s *PostgreSQLStore) GetAllDraws() ([]models.Draw, error) {
 	rows, err := s.pool.Query(context.Background(),
-		`SELECT id, game_id, draw_date, result_numbers, result_stars, processed, created_at
+		`SELECT id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at
 		 FROM draws ORDER BY draw_date DESC`)
 	if err != nil {
 		return nil, fmt.Errorf("error querying draws: %w", err)
@@ -51,7 +51,7 @@ func (s *PostgreSQLStore) GetAllDraws() ([]models.Draw, error) {
 	draws := make([]models.Draw, 0)
 	for rows.Next() {
 		var d models.Draw
-		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt); err != nil {
 			return nil, fmt.Errorf("error scanning draw: %w", err)
 		}
 		draws = append(draws, d)
@@ -64,9 +64,9 @@ func (s *PostgreSQLStore) GetDrawByID(id int) (models.Draw, error) {
 	var d models.Draw
 
 	err := s.pool.QueryRow(context.Background(),
-		`SELECT id, game_id, draw_date, result_numbers, result_stars, processed, created_at
+		`SELECT id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at
 		 FROM draws WHERE id = $1`, id,
-	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt)
+	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt)
 
 	if err == pgx.ErrNoRows {
 		return models.Draw{}, fmt.Errorf("draw %d not found", id)
@@ -80,7 +80,7 @@ func (s *PostgreSQLStore) GetDrawByID(id int) (models.Draw, error) {
 
 func (s *PostgreSQLStore) GetDrawsByGame(gameID int) ([]models.Draw, error) {
 	rows, err := s.pool.Query(context.Background(),
-		`SELECT id, game_id, draw_date, result_numbers, result_stars, processed, created_at
+		`SELECT id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at
 		 FROM draws WHERE game_id = $1 ORDER BY draw_date DESC`, gameID)
 	if err != nil {
 		return nil, fmt.Errorf("error querying draws: %w", err)
@@ -90,7 +90,7 @@ func (s *PostgreSQLStore) GetDrawsByGame(gameID int) ([]models.Draw, error) {
 	draws := make([]models.Draw, 0)
 	for rows.Next() {
 		var d models.Draw
-		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt); err != nil {
 			return nil, fmt.Errorf("error scanning draw: %w", err)
 		}
 		draws = append(draws, d)
@@ -101,7 +101,7 @@ func (s *PostgreSQLStore) GetDrawsByGame(gameID int) ([]models.Draw, error) {
 
 func (s *PostgreSQLStore) GetPendingDraws() ([]models.Draw, error) {
 	rows, err := s.pool.Query(context.Background(),
-		`SELECT id, game_id, draw_date, result_numbers, result_stars, processed, created_at
+		`SELECT id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at
 		 FROM draws WHERE processed = false ORDER BY draw_date`)
 	if err != nil {
 		return nil, fmt.Errorf("error querying pending draws: %w", err)
@@ -111,7 +111,7 @@ func (s *PostgreSQLStore) GetPendingDraws() ([]models.Draw, error) {
 	draws := make([]models.Draw, 0)
 	for rows.Next() {
 		var d models.Draw
-		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt); err != nil {
 			return nil, fmt.Errorf("error scanning draw: %w", err)
 		}
 		draws = append(draws, d)
@@ -127,15 +127,36 @@ func (s *PostgreSQLStore) UpdateDrawResults(id int, resultNumbers *string, resul
 		`UPDATE draws
 		 SET result_numbers = $1, result_stars = $2
 		 WHERE id = $3
-		 RETURNING id, game_id, draw_date, result_numbers, result_stars, processed, created_at`,
+		 RETURNING id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at`,
 		resultNumbers, resultStars, id,
-	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.Processed, &d.CreatedAt)
+	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt)
 
 	if err == pgx.ErrNoRows {
 		return models.Draw{}, fmt.Errorf("draw %d not found", id)
 	}
 	if err != nil {
 		return models.Draw{}, fmt.Errorf("error updating draw results: %w", err)
+	}
+
+	return d, nil
+}
+
+func (s *PostgreSQLStore) UpdateDrawDrawIDAPI(id int, drawIDAPI string) (models.Draw, error) {
+	var d models.Draw
+
+	err := s.pool.QueryRow(context.Background(),
+		`UPDATE draws
+		 SET draw_id_api = $1
+		 WHERE id = $2
+		 RETURNING id, game_id, draw_date, result_numbers, result_stars, draw_id_api, processed, created_at`,
+		drawIDAPI, id,
+	).Scan(&d.ID, &d.GameID, &d.DrawDate, &d.ResultNumbers, &d.ResultStars, &d.DrawIDAPI, &d.Processed, &d.CreatedAt)
+
+	if err == pgx.ErrNoRows {
+		return models.Draw{}, fmt.Errorf("draw %d not found", id)
+	}
+	if err != nil {
+		return models.Draw{}, fmt.Errorf("error updating draw draw_id_api: %w", err)
 	}
 
 	return d, nil

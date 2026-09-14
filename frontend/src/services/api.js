@@ -87,6 +87,11 @@ export const draws = {
   delete: (id) => request(`/draws/${id}`, { method: "DELETE" }),
   getByGame: (id) => request(`/draws/game/${id}`),
   getPending: () => request("/draws/pending"),
+  fetchResults: (data) =>
+    request("/loteria-api/fetch-results", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 export const tickets = {
@@ -101,4 +106,9 @@ export const tickets = {
     }),
   delete: (id) => request(`/tickets/${id}`, { method: "DELETE" }),
   getByDraw: (id) => request(`/tickets/draw/${id}`),
+  check: (ticketId) =>
+    request("/check-ticket", {
+      method: "POST",
+      body: JSON.stringify({ ticket_id: ticketId }),
+    }),
 };

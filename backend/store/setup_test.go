@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 
 	"lottery-pool-manager/models"
+	"lottery-pool-manager/utils"
 )
 
 var testStore *PostgreSQLStore
@@ -19,9 +21,16 @@ var testStore *PostgreSQLStore
 const testDBName = "lottery_pool_test"
 
 func TestMain(m *testing.M) {
+	godotenv.Load("../.env")
+
+	dbHost := utils.GetEnv("DB_HOST", "localhost")
+	dbPort := utils.GetEnv("DB_PORT", "5432")
+	dbUser := utils.GetEnv("DB_USER", "lottery")
+	dbPassword := utils.GetEnv("DB_PASSWORD", "lottery123")
+
 	baseConn := os.Getenv("TEST_DATABASE_URL")
 	if baseConn == "" {
-		baseConn = "postgres://lottery:lottery123@localhost:5432/lottery_pool"
+		baseConn = fmt.Sprintf("postgres://%s:%s@%s:%s/lottery_pool", dbUser, dbPassword, dbHost, dbPort)
 	}
 
 	// Connect to default database to create/drop test DB
@@ -41,7 +50,7 @@ func TestMain(m *testing.M) {
 	basePool.Close()
 
 	// Connect to test database
-	testConn := fmt.Sprintf("postgres://lottery:lottery123@localhost:5432/%s", testDBName)
+	testConn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", dbUser, dbPassword, dbHost, dbPort, testDBName)
 	testStore, err = NewPostgreSQLStore(testConn)
 	if err != nil {
 		fmt.Printf("failed to connect to test database: %v\n", err)

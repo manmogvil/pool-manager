@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -41,4 +42,11 @@ func ParseID(raw string) (int, error) {
 
 func ParseDate(raw string) (time.Time, error) {
 	return time.Parse("2006-01-02", raw)
+}
+
+func GetEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
 }

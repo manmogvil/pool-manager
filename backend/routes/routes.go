@@ -10,6 +10,7 @@ import (
 
 	"lottery-pool-manager/handlers"
 	"lottery-pool-manager/store"
+	"lottery-pool-manager/utils"
 	"time"
 )
 
@@ -26,7 +27,7 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{utils.GetEnv("CORS_ORIGIN", "http://localhost:5173")},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Link"},
@@ -86,6 +87,14 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 		r.Delete("/{id}", ticketHandler.Delete)
 		r.Get("/draw/{id}", ticketHandler.GetByDraw)
 	})
+
+	loteriaAPIHandler := handlers.NewLoteriaAPIHandler(s)
+	r.Route("/loteria-api", func(r chi.Router) {
+		r.Post("/fetch-results", loteriaAPIHandler.FetchResults)
+	})
+
+	checkTicketHandler := handlers.NewCheckTicketHandler(s)
+	r.Post("/check-ticket", checkTicketHandler.CheckTicket)
 
 	return r
 }

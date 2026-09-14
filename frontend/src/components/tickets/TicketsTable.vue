@@ -7,6 +7,7 @@ const ticketList = ref([])
 const drawList = ref([])
 const gameList = ref([])
 const loading = ref(false)
+const checkingId = ref(null)
 const dialogVisible = ref(false)
 const selectedTicket = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success' })
@@ -50,6 +51,19 @@ function openCreateDialog() {
 function openEditDialog(ticket) {
   selectedTicket.value = ticket
   dialogVisible.value = true
+}
+
+async function checkTicket(ticket) {
+  checkingId.value = ticket.id
+  try {
+    const result = await ticketsService.check(ticket.id)
+    showSnackbar(result.message || 'Ticket checked', 'success')
+    await loadData()
+  } catch (error) {
+    showSnackbar(error.message, 'error')
+  } finally {
+    checkingId.value = null
+  }
 }
 
 async function handleSaved(data) {
@@ -117,7 +131,7 @@ onMounted(() => {
           { title: 'Prize Tier', key: 'prize_tier', width: '110px' },
           { title: 'Prize', key: 'prize_amount', width: '100px' },
           { title: 'Matched', key: 'matched_numbers', width: '90px' },
-          { title: 'Actions', key: 'actions', width: '120px', sortable: false }
+          { title: 'Actions', key: 'actions', width: '160px', sortable: false }
         ]"
         :items="ticketList"
         :loading="loading"
@@ -146,8 +160,29 @@ onMounted(() => {
         </template>
 
         <template v-slot:item.actions="{ item }">
-          <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEditDialog(item)" />
-          <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="deleteTicket(item)" />
+          <v-tooltip v-if="!item.prize_tier" location="top" text="Check prize against API">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                icon="mdi-magnify"
+                variant="text"
+                size="small"
+                color="primary"
+                :loading="checkingId === item.id"
+                v-bind="props"
+                @click="checkTicket(item)"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip location="top" text="Edit ticket">
+            <template v-slot:activator="{ props }">
+              <v-btn icon="mdi-pencil" variant="text" size="small" v-bind="props" @click="openEditDialog(item)" />
+            </template>
+          </v-tooltip>
+          <v-tooltip location="top" text="Delete ticket">
+            <template v-slot:activator="{ props }">
+              <v-btn icon="mdi-delete" variant="text" size="small" color="error" v-bind="props" @click="deleteTicket(item)" />
+            </template>
+          </v-tooltip>
         </template>
       </v-data-table>
     </v-card>

@@ -7,14 +7,15 @@ import (
 )
 
 type mockDrawStore struct {
-	createFn        func(gameID int, drawDate time.Time) (models.Draw, error)
-	getAllFn        func() ([]models.Draw, error)
-	getByIDFn       func(id int) (models.Draw, error)
-	getByGameFn     func(gameID int) ([]models.Draw, error)
-	getPendingFn    func() ([]models.Draw, error)
-	updateResultsFn func(id int, resultNumbers *string, resultStars *string) (models.Draw, error)
-	markProcessedFn func(id int) error
-	deleteFn        func(id int) error
+	createFn            func(gameID int, drawDate time.Time) (models.Draw, error)
+	getAllFn            func() ([]models.Draw, error)
+	getByIDFn           func(id int) (models.Draw, error)
+	getByGameFn         func(gameID int) ([]models.Draw, error)
+	getPendingFn        func() ([]models.Draw, error)
+	updateResultsFn     func(id int, resultNumbers *string, resultStars *string) (models.Draw, error)
+	updateDrawIDAPIFn   func(id int, drawIDAPI string) (models.Draw, error)
+	markProcessedFn     func(id int) error
+	deleteFn            func(id int) error
 }
 
 func (m *mockDrawStore) CreateDraw(gameID int, drawDate time.Time) (models.Draw, error) {
@@ -34,6 +35,9 @@ func (m *mockDrawStore) GetPendingDraws() ([]models.Draw, error) {
 }
 func (m *mockDrawStore) UpdateDrawResults(id int, resultNumbers *string, resultStars *string) (models.Draw, error) {
 	return m.updateResultsFn(id, resultNumbers, resultStars)
+}
+func (m *mockDrawStore) UpdateDrawDrawIDAPI(id int, drawIDAPI string) (models.Draw, error) {
+	return m.updateDrawIDAPIFn(id, drawIDAPI)
 }
 func (m *mockDrawStore) MarkDrawAsProcessed(id int) error {
 	return m.markProcessedFn(id)
