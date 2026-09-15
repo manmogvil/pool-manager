@@ -4,6 +4,7 @@ import { draws as drawsService, games as gamesService } from '../../services/api
 import { useAuth } from '../../composables/useAuth'
 import DrawsFormDialog from './DrawsFormDialog.vue'
 import FetchResultsDialog from './FetchResultsDialog.vue'
+import ConfirmDialog from '../layout/ConfirmDialog.vue'
 
 const { isAdmin } = useAuth()
 
@@ -15,6 +16,8 @@ const selectedDraw = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success' })
 
 const fetchDialogVisible = ref(false)
+const confirmVisible = ref(false)
+const drawToDelete = ref(null)
 
 async function loadData() {
   loading.value = true
@@ -88,14 +91,20 @@ async function handleSaved(data) {
   }
 }
 
-async function deleteDraw(draw) {
+function confirmDelete(draw) {
+  drawToDelete.value = draw
+  confirmVisible.value = true
+}
+
+async function handleConfirmDelete() {
   try {
-    await drawsService.delete(draw.id)
+    await drawsService.delete(drawToDelete.value.id)
     showSnackbar('Draw deleted', 'success')
     await loadData()
   } catch (error) {
     showSnackbar(error.message, 'error')
   }
+  confirmVisible.value = false
 }
 
 function showSnackbar(message, color) {
@@ -160,7 +169,7 @@ onMounted(() => {
           </v-tooltip>
           <v-tooltip location="top" text="Delete draw">
             <template v-slot:activator="{ props }">
-              <v-btn icon="mdi-delete" variant="text" size="small" color="error" v-bind="props" @click="deleteDraw(item)" />
+              <v-btn icon="mdi-delete" variant="text" size="small" color="error" v-bind="props" @click="confirmDelete(item)" />
             </template>
           </v-tooltip>
         </template>
@@ -177,6 +186,13 @@ onMounted(() => {
     <FetchResultsDialog
       v-model:visible="fetchDialogVisible"
       @saved="handleFetchSaved"
+    />
+
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      title="Delete Draw"
+      message="Are you sure you want to delete this draw?"
+      @confirm="handleConfirmDelete"
     />
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">

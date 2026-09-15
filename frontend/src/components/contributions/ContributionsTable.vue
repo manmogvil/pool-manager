@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { contributions as contributionsService, users as usersService, games as gamesService } from '../../services/api'
 import { useAuth } from '../../composables/useAuth'
 import ContributionsFormDialog from './ContributionsFormDialog.vue'
+import ConfirmDialog from '../layout/ConfirmDialog.vue'
 
 const { isAdmin } = useAuth()
 
@@ -12,6 +13,8 @@ const gameList = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const selectedContribution = ref(null)
+const confirmVisible = ref(false)
+const contributionToDelete = ref(null)
 const snackbar = ref({ show: false, message: '', color: 'success' })
 
 const monthNames = [
@@ -77,14 +80,20 @@ async function handleSaved(data) {
   }
 }
 
-async function deleteContribution(contribution) {
+function confirmDelete(contribution) {
+  contributionToDelete.value = contribution
+  confirmVisible.value = true
+}
+
+async function handleConfirmDelete() {
   try {
-    await contributionsService.delete(contribution.id)
+    await contributionsService.delete(contributionToDelete.value.id)
     showSnackbar('Contribution deleted', 'success')
     await loadData()
   } catch (error) {
     showSnackbar(error.message, 'error')
   }
+  confirmVisible.value = false
 }
 
 function showSnackbar(message, color) {
@@ -157,7 +166,7 @@ onMounted(() => {
 
         <template v-slot:item.actions="{ item }" v-if="isAdmin">
           <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEditDialog(item)" />
-          <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="deleteContribution(item)" />
+          <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="confirmDelete(item)" />
         </template>
       </v-data-table>
     </v-card>
@@ -168,6 +177,13 @@ onMounted(() => {
       :users="userList"
       :games="gameList"
       @saved="handleSaved"
+    />
+
+    <ConfirmDialog
+      v-model:visible="confirmVisible"
+      title="Delete Contribution"
+      message="Are you sure you want to delete this contribution?"
+      @confirm="handleConfirmDelete"
     />
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
