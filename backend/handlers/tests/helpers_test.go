@@ -25,12 +25,6 @@ func doRequest(t *testing.T, handler http.Handler, method, url, body string) *ht
 	return rr
 }
 
-func doParticipantRequest(t *testing.T, mock *mockParticipantStore, method, url, body string) *httptest.ResponseRecorder {
-	t.Helper()
-	h := handlers.NewParticipantHandler(mock)
-	return doRequest(t, setupParticipantRouter(h), method, url, body)
-}
-
 func doGameRequest(t *testing.T, mock *mockLotteryGameStore, method, url, body string) *httptest.ResponseRecorder {
 	t.Helper()
 	h := handlers.NewLotteryGameHandler(mock)
@@ -56,17 +50,6 @@ func doTicketRequest(t *testing.T, mock *mockTicketStore, method, url, body stri
 }
 
 // Routers
-
-func setupParticipantRouter(h *handlers.ParticipantHandler) *chi.Mux {
-	r := chi.NewRouter()
-	r.Get("/participants", h.List)
-	r.Get("/participants/{id}", h.GetByID)
-	r.Post("/participants", h.Create)
-	r.Put("/participants/{id}", h.Update)
-	r.Put("/participants/{id}/deactivate", h.Deactivate)
-	r.Put("/participants/{id}/activate", h.Activate)
-	return r
-}
 
 func setupGameRouter(h *handlers.LotteryGameHandler) *chi.Mux {
 	r := chi.NewRouter()

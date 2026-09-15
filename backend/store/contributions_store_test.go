@@ -13,11 +13,11 @@ func strPtr(s string) *string {
 func TestStore_CreateContribution(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	c := &models.Contribution{
-		ParticipantID: participant.ID,
+		UserID:        user.ID,
 		GameID:        game.ID,
 		Month:         1,
 		Year:          2024,
@@ -41,14 +41,14 @@ func TestStore_CreateContribution(t *testing.T) {
 func TestStore_GetAllContributions(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 2, Year: 2024, Amount: 5.00, PaymentMethod: "BIZUM",
+		UserID: user.ID, GameID: game.ID, Month: 2, Year: 2024, Amount: 5.00, PaymentMethod: "BIZUM",
 	})
 
 	contributions, err := testStore.GetAllContributions()
@@ -63,11 +63,11 @@ func TestStore_GetAllContributions(t *testing.T) {
 func TestStore_GetContributionByID(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	created, _ := testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 
 	c, err := testStore.GetContributionByID(created.ID)
@@ -91,43 +91,43 @@ func TestStore_GetContributionByID_NotFound(t *testing.T) {
 func TestStore_GetContributionsByParticipant(t *testing.T) {
 	cleanup(t)
 
-	p1 := seedParticipant(t, "Alice", "alice@example.com")
-	p2 := seedParticipant(t, "Bob", "bob@example.com")
+	u1 := seedUser(t, "Alice", "alice@example.com")
+	u2 := seedUser(t, "Bob", "bob@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: p1.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: u1.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: p1.ID, GameID: game.ID, Month: 2, Year: 2024, Amount: 5.00, PaymentMethod: "BIZUM",
+		UserID: u1.ID, GameID: game.ID, Month: 2, Year: 2024, Amount: 5.00, PaymentMethod: "BIZUM",
 	})
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: p2.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: u2.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 
-	contributions, err := testStore.GetContributionsByParticipant(p1.ID)
+	contributions, err := testStore.GetContributionsByParticipant(u1.ID)
 	if err != nil {
 		t.Fatalf("GetContributionsByParticipant failed: %v", err)
 	}
 	if len(contributions) != 2 {
-		t.Errorf("expected 2 contributions for p1, got %d", len(contributions))
+		t.Errorf("expected 2 contributions for u1, got %d", len(contributions))
 	}
 }
 
 func TestStore_GetContributionsByPeriod(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 2, Year: 2024, Amount: 5.00, PaymentMethod: "BIZUM",
+		UserID: user.ID, GameID: game.ID, Month: 2, Year: 2024, Amount: 5.00, PaymentMethod: "BIZUM",
 	})
 	_, _ = testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2023, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2023, Amount: 5.00, PaymentMethod: "CASH",
 	})
 
 	contributions, err := testStore.GetContributionsByPeriod(1, 2024)
@@ -142,15 +142,15 @@ func TestStore_GetContributionsByPeriod(t *testing.T) {
 func TestStore_UpdateContribution(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	created, _ := testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 
 	updated := &models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 10.00, Paid: true, PaymentMethod: "BIZUM",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 10.00, Paid: true, PaymentMethod: "BIZUM",
 	}
 
 	result, err := testStore.UpdateContribution(created.ID, updated)
@@ -165,11 +165,11 @@ func TestStore_UpdateContribution(t *testing.T) {
 func TestStore_UpdateContribution_NotFound(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	updated := &models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 10.00, PaymentMethod: "BIZUM",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 10.00, PaymentMethod: "BIZUM",
 	}
 
 	_, err := testStore.UpdateContribution(999, updated)
@@ -181,11 +181,11 @@ func TestStore_UpdateContribution_NotFound(t *testing.T) {
 func TestStore_DeleteContribution(t *testing.T) {
 	cleanup(t)
 
-	participant := seedParticipant(t, "Alice", "alice@example.com")
+	user := seedUser(t, "Alice", "alice@example.com")
 	game := seedGame(t, "EuroMillones", "Tuesday, Friday", 2.50)
 
 	created, _ := testStore.CreateContribution(&models.Contribution{
-		ParticipantID: participant.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
+		UserID: user.ID, GameID: game.ID, Month: 1, Year: 2024, Amount: 5.00, PaymentMethod: "CASH",
 	})
 
 	err := testStore.DeleteContribution(created.ID)

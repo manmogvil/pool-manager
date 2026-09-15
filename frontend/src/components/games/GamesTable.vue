@@ -1,7 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { games as gamesService } from '../../services/api'
+import { useAuth } from '../../composables/useAuth'
 import GamesFormDialog from './GamesFormDialog.vue'
+
+const { isAdmin } = useAuth()
 
 const gameList = ref([])
 const loading = ref(false)
@@ -91,7 +94,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="table-header">
+    <div class="table-header" v-if="isAdmin">
       <v-btn color="primary" @click="openCreateDialog">
         <v-icon start>mdi-plus</v-icon>
         Add Game
@@ -105,8 +108,10 @@ onMounted(() => {
           { title: 'Name', key: 'name' },
           { title: 'Draw Days', key: 'draw_days' },
           { title: 'Ticket Price', key: 'ticket_price', width: '140px' },
-          { title: 'Status', key: 'active', width: '100px', sortable: true },
-          { title: 'Actions', key: 'actions', width: '120px', sortable: false }
+          ...(isAdmin ? [
+            { title: 'Status', key: 'active', width: '100px', sortable: true },
+            { title: 'Actions', key: 'actions', width: '120px', sortable: false }
+          ] : [])
         ]"
         :items="gameList"
         :loading="loading"
@@ -116,7 +121,7 @@ onMounted(() => {
           {{ item.ticket_price.toFixed(2) }} €
         </template>
 
-        <template v-slot:item.active="{ item }">
+        <template v-slot:item.active="{ item }" v-if="isAdmin">
           <v-switch
             v-model="item.active"
             color="success"
@@ -126,7 +131,7 @@ onMounted(() => {
           />
         </template>
 
-        <template v-slot:item.actions="{ item }">
+        <template v-slot:item.actions="{ item }" v-if="isAdmin">
           <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEditDialog(item)" />
           <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="deleteGame(item)" />
         </template>

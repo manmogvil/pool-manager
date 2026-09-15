@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"lottery-pool-manager/models"
+	"lottery-pool-manager/services"
 	"lottery-pool-manager/utils"
 )
 
@@ -110,16 +111,17 @@ func runMigrations() error {
 func cleanup(t *testing.T) {
 	t.Helper()
 	_, _ = testStore.pool.Exec(context.Background(),
-		`TRUNCATE tickets, draws, contributions, lottery_games, participants RESTART IDENTITY CASCADE;`)
+		`TRUNCATE tickets, draws, contributions, lottery_games, users RESTART IDENTITY CASCADE;`)
 }
 
-func seedParticipant(t *testing.T, name, email string) models.Participant {
+func seedUser(t *testing.T, name, email string) models.User {
 	t.Helper()
-	p, err := testStore.CreateParticipant(name, email)
+	hash, _ := services.NewAuthService().HashPassword("password123")
+	u, err := testStore.CreateUser(name, email, hash, "user")
 	if err != nil {
-		t.Fatalf("seedParticipant failed: %v", err)
+		t.Fatalf("seedUser failed: %v", err)
 	}
-	return p
+	return u
 }
 
 func seedGame(t *testing.T, name, drawDays string, price float64) models.LotteryGame {

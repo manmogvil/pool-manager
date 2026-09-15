@@ -1,10 +1,13 @@
 <script setup>
+import { useAuth } from './composables/useAuth'
 import AppSidebar from './components/layout/AppSidebar.vue'
+
+const { isAuthenticated } = useAuth()
 </script>
 
 <template>
   <v-app>
-    <AppSidebar />
+    <AppSidebar v-if="isAuthenticated" />
     <v-main class="main-content">
       <router-view />
     </v-main>

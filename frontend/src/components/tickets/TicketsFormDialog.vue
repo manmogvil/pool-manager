@@ -30,12 +30,23 @@ function getDrawLabel(draw) {
   return `${gameName} #${draw.id} - ${formatDate(draw.draw_date)}`
 }
 
+const selectedGame = computed(() => {
+  if (!form.value.draw_id) return null
+  const draw = props.draws.find(d => d.id === form.value.draw_id)
+  if (!draw) return null
+  return props.games.find(g => g.id === draw.game_id) || null
+})
+
+const ticketCost = computed(() => {
+  return selectedGame.value ? selectedGame.value.ticket_price : 0
+})
+
 watch(() => props.visible, (val) => {
   if (val) {
     if (props.ticket) {
       form.value = { ...props.ticket }
     } else {
-      form.value = { draw_id: null, numbers: '', stars: '', cost: null }
+      form.value = { draw_id: null, numbers: '', stars: '' }
     }
   }
 })
@@ -49,6 +60,7 @@ async function save() {
   if (!valid) return
   emit('saved', {
     ...form.value,
+    cost: ticketCost.value,
     id: props.ticket?.id
   })
 }
@@ -88,15 +100,13 @@ async function save() {
             class="mb-3"
           />
           <v-text-field
-            v-model.number="form.cost"
+            :model-value="ticketCost > 0 ? ticketCost.toFixed(2) + ' €' : 'Select a draw first'"
             label="Cost"
-            type="number"
-            prefix="€"
             variant="outlined"
-            :rules="[
-              v => !!v || 'Cost is required',
-              v => v > 0 || 'Cost must be greater than 0'
-            ]"
+            readonly
+            :disabled="!form.draw_id"
+            :hint="selectedGame ? `Price from ${selectedGame.name}` : ''"
+            persistent-hint
           />
         </v-form>
       </v-card-text>

@@ -4,7 +4,7 @@ import { computed, ref, watch } from 'vue'
 const props = defineProps({
   visible: Boolean,
   contribution: Object,
-  participants: { type: Array, default: () => [] },
+  users: { type: Array, default: () => [] },
   games: { type: Array, default: () => [] }
 })
 
@@ -45,7 +45,7 @@ watch(() => props.visible, (val) => {
       datePickerValue.value = isoDate ? new Date(isoDate + 'T00:00:00') : null
     } else {
       const today = formatToISO(new Date().toISOString())
-      form.value = { participant_id: null, game_id: null, month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: null, paid: true, payment_date: today, payment_method: '', comments: '' }
+      form.value = { user_id: null, game_id: null, month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: null, paid: true, payment_date: today, payment_method: '', comments: '' }
       datePickerValue.value = new Date()
     }
   }
@@ -85,13 +85,13 @@ async function save() {
       <v-card-text>
         <v-form ref="formRef">
           <v-select
-            v-model="form.participant_id"
-            :items="participants"
+            v-model="form.user_id"
+            :items="users"
             item-title="name"
             item-value="id"
-            label="Participant"
+            label="User"
             variant="outlined"
-            :rules="[v => !!v || 'Selecting a participant is required']"
+            :rules="[v => !!v || 'Selecting a user is required']"
             class="mb-3"
           />
           <v-select

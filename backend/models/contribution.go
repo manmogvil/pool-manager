@@ -7,7 +7,7 @@ import (
 // PaymentDate is a pointer to time.Time to allow for null values in the database (optional field)
 type Contribution struct {
 	ID            int        `json:"id"`
-	ParticipantID int        `json:"participant_id"`
+	UserID        int        `json:"user_id"`
 	GameID        int        `json:"game_id"`
 	Month         int        `json:"month"`
 	Year          int        `json:"year"`

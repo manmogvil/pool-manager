@@ -1,1 +1,0 @@
-ALTER TABLE draws ADD COLUMN draw_id_api VARCHAR(50);

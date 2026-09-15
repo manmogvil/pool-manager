@@ -14,7 +14,7 @@ type ContributionStore interface {
 	CreateContribution(c *models.Contribution) (models.Contribution, error)
 	GetAllContributions() ([]models.Contribution, error)
 	GetContributionByID(id int) (models.Contribution, error)
-	GetContributionsByParticipant(participantID int) ([]models.Contribution, error)
+	GetContributionsByParticipant(userID int) ([]models.Contribution, error)
 	GetContributionsByPeriod(month, year int) ([]models.Contribution, error)
 	UpdateContribution(id int, c *models.Contribution) (models.Contribution, error)
 	DeleteContribution(id int) error
@@ -53,14 +53,14 @@ func (h *ContributionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, c)
 }
 
-func (h *ContributionHandler) GetByParticipant(w http.ResponseWriter, r *http.Request) {
-	participantID, err := utils.ParseID(chi.URLParam(r, "id"))
+func (h *ContributionHandler) GetByUser(w http.ResponseWriter, r *http.Request) {
+	userID, err := utils.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
-		utils.RespondError(w, http.StatusBadRequest, "invalid participant id")
+		utils.RespondError(w, http.StatusBadRequest, "invalid user id")
 		return
 	}
 
-	contributions, err := h.store.GetContributionsByParticipant(participantID)
+	contributions, err := h.store.GetContributionsByParticipant(userID)
 	if err != nil {
 		utils.RespondError(w, http.StatusInternalServerError, "error fetching contributions")
 		return
@@ -91,7 +91,7 @@ func (h *ContributionHandler) GetByPeriod(w http.ResponseWriter, r *http.Request
 }
 
 type createContributionRequest struct {
-	ParticipantID int     `json:"participant_id"`
+	UserID        int     `json:"user_id"`
 	GameID        int     `json:"game_id"`
 	Month         int     `json:"month"`
 	Year          int     `json:"year"`
@@ -103,8 +103,8 @@ type createContributionRequest struct {
 }
 
 func validateContributionRequest(req *createContributionRequest) error {
-	if req.ParticipantID == 0 {
-		return &utils.ValidationError{Field: "participant_id", Message: "is required"}
+	if req.UserID == 0 {
+		return &utils.ValidationError{Field: "user_id", Message: "is required"}
 	}
 	if req.GameID == 0 {
 		return &utils.ValidationError{Field: "game_id", Message: "is required"}
@@ -129,7 +129,7 @@ func validateContributionRequest(req *createContributionRequest) error {
 
 func buildContributionFromRequest(req *createContributionRequest) (*models.Contribution, error) {
 	contribution := &models.Contribution{
-		ParticipantID: req.ParticipantID,
+		UserID:        req.UserID,
 		GameID:        req.GameID,
 		Month:         req.Month,
 		Year:          req.Year,

@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { contributions as contributionsService, participants as participantsService, games as gamesService } from '../../services/api'
+import { contributions as contributionsService, users as usersService, games as gamesService } from '../../services/api'
+import { useAuth } from '../../composables/useAuth'
 import ContributionsFormDialog from './ContributionsFormDialog.vue'
 
+const { isAdmin } = useAuth()
+
 const contributionList = ref([])
-const participantList = ref([])
+const userList = ref([])
 const gameList = ref([])
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -19,14 +22,18 @@ const monthNames = [
 async function loadData() {
   loading.value = true
   try {
-    const [c, p, g] = await Promise.all([
+    const [contributionData, gameData] = await Promise.all([
       contributionsService.getAll(),
-      participantsService.getAll(),
       gamesService.getAll()
     ])
-    contributionList.value = c
-    participantList.value = p
-    gameList.value = g
+    contributionList.value = contributionData
+    gameList.value = gameData
+
+    if (isAdmin.value) {
+      try {
+        userList.value = await usersService.getAll()
+      } catch { /* non-admin, skip */ }
+    }
   } catch (error) {
     showSnackbar(error.message, 'error')
   } finally {
@@ -34,9 +41,9 @@ async function loadData() {
   }
 }
 
-function getParticipantName(id) {
-  const participant = participantList.value.find(p => p.id === id)
-  return participant ? participant.name : `#${id}`
+function getUserName(id) {
+  const user = userList.value.find(u => u.id === id)
+  return user ? user.name : `User #${id}`
 }
 
 function getGameName(id) {
@@ -91,7 +98,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="table-header">
+    <div class="table-header" v-if="isAdmin">
       <v-btn color="primary" @click="openCreateDialog">
         <v-icon start>mdi-plus</v-icon>
         Add Contribution
@@ -102,21 +109,21 @@ onMounted(() => {
       <v-data-table
         :headers="[
           { title: 'ID', key: 'id', width: '70px' },
-          { title: 'Participant', key: 'participant_id', width: '150px' },
+          { title: 'User', key: 'user_id', width: '150px' },
           { title: 'Game', key: 'game_id', width: '120px' },
           { title: 'Period', key: 'month', width: '120px' },
           { title: 'Amount', key: 'amount', width: '100px' },
           { title: 'Paid', key: 'paid', width: '80px', sortable: true },
           { title: 'Method', key: 'payment_method', width: '100px' },
           { title: 'Date', key: 'payment_date', width: '120px' },
-          { title: 'Actions', key: 'actions', width: '120px', sortable: false }
+          ...(isAdmin ? [{ title: 'Actions', key: 'actions', width: '120px', sortable: false }] : [])
         ]"
         :items="contributionList"
         :loading="loading"
         striped-rows
       >
-        <template v-slot:item.participant_id="{ item }">
-          {{ getParticipantName(item.participant_id) }}
+        <template v-slot:item.user_id="{ item }">
+          {{ getUserName(item.user_id) }}
         </template>
 
         <template v-slot:item.game_id="{ item }">
@@ -148,7 +155,7 @@ onMounted(() => {
           {{ item.payment_date ? item.payment_date.split('T')[0] : '-' }}
         </template>
 
-        <template v-slot:item.actions="{ item }">
+        <template v-slot:item.actions="{ item }" v-if="isAdmin">
           <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEditDialog(item)" />
           <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="deleteContribution(item)" />
         </template>
@@ -158,7 +165,7 @@ onMounted(() => {
     <ContributionsFormDialog
       v-model:visible="dialogVisible"
       :contribution="selectedContribution"
-      :participants="participantList"
+      :users="userList"
       :games="gameList"
       @saved="handleSaved"
     />

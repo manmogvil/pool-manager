@@ -1,18 +1,56 @@
 const API_BASE = "http://localhost:8080";
 
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+function setToken(token) {
+  localStorage.setItem("token", token);
+}
+
+function clearToken() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+}
+
+function getUser() {
+  const raw = localStorage.getItem("user");
+  return raw ? JSON.parse(raw) : null;
+}
+
+function setUser(user) {
+  localStorage.setItem("user", JSON.stringify(user));
+}
+
 async function request(url, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+  const token = getToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(`${API_BASE}${url}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
       signal: controller.signal,
       ...options,
     });
+
+    if (
+      response.status === 401 &&
+      !url.startsWith("/auth/login") &&
+      !url.startsWith("/auth/register")
+    ) {
+      clearToken();
+      window.location.href = "/login";
+      throw new Error(response.statusText || "Unauthorized");
+    }
 
     if (!response.ok) {
       const error = await response.json();
@@ -22,10 +60,17 @@ async function request(url, options = {}) {
     return response.json();
   } catch (error) {
     if (error.name === "AbortError") {
-      throw new Error("Server timeout. Check if backend is running on port 8080.");
+      throw new Error(
+        "Server timeout. Check if backend is running on port 8080.",
+      );
     }
-    if (error.message?.includes("Failed to fetch") || error.message?.includes("NetworkError")) {
-      throw new Error("Cannot connect to server. Check if backend is running on port 8080.");
+    if (
+      error.message?.includes("Failed to fetch") ||
+      error.message?.includes("NetworkError")
+    ) {
+      throw new Error(
+        "Cannot connect to server. Check if backend is running on port 8080.",
+      );
     }
     throw error;
   } finally {
@@ -33,18 +78,34 @@ async function request(url, options = {}) {
   }
 }
 
-export const participants = {
-  getAll: () => request("/participants"),
-  getById: (id) => request(`/participants/${id}`),
-  create: (data) =>
-    request("/participants", { method: "POST", body: JSON.stringify(data) }),
-  update: (id, data) =>
-    request(`/participants/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
+export const auth = {
+  login: (email, password) =>
+    request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
     }),
-  activate: (id) => request(`/participants/${id}/activate`, { method: "PUT" }),
-  delete: (id) => request(`/participants/${id}`, { method: "DELETE" }),
+  register: (name, email, password) =>
+    request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password }),
+    }),
+  me: () => request("/auth/me"),
+  logout: () => {
+    clearToken();
+  },
+  isAuthenticated: () => !!getToken(),
+  getUser,
+  setUser,
+  setToken,
+};
+
+export const users = {
+  getAll: () => request("/auth/users"),
+  update: (id, data) =>
+    request(`/auth/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  activate: (id) => request(`/auth/users/${id}/activate`, { method: "PUT" }),
+  deactivate: (id) =>
+    request(`/auth/users/${id}/deactivate`, { method: "PUT" }),
 };
 
 export const contributions = {
@@ -58,7 +119,7 @@ export const contributions = {
       body: JSON.stringify(data),
     }),
   delete: (id) => request(`/contributions/${id}`, { method: "DELETE" }),
-  getByParticipant: (id) => request(`/contributions/participant/${id}`),
+  getByUser: (id) => request(`/contributions/user/${id}`),
   getByPeriod: (month, year) =>
     request(`/contributions/period?month=${month}&year=${year}`),
 };

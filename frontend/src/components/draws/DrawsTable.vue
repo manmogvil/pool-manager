@@ -1,8 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { draws as drawsService, games as gamesService } from '../../services/api'
+import { useAuth } from '../../composables/useAuth'
 import DrawsFormDialog from './DrawsFormDialog.vue'
 import FetchResultsDialog from './FetchResultsDialog.vue'
+
+const { isAdmin } = useAuth()
 
 const drawList = ref([])
 const gameList = ref([])
@@ -107,7 +110,7 @@ onMounted(() => {
 <template>
   <div>
     <div class="table-header">
-      <v-btn color="secondary" @click="openFetchDialog" class="mr-2">
+      <v-btn v-if="isAdmin" color="secondary" @click="openFetchDialog" class="mr-2">
         <v-icon start>mdi-cloud-download</v-icon>
         Fetch Results
       </v-btn>

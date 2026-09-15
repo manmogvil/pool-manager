@@ -1,11 +1,11 @@
 <script setup>
-import ParticipantsTable from '../components/participants/ParticipantsTable.vue'
+import UsersTable from '../components/users/UsersTable.vue'
 </script>
 
 <template>
   <v-container fluid class="view-container">
-    <h1 class="text-h5 font-weight-bold view-title">Participants</h1>
-    <ParticipantsTable />
+    <h1 class="text-h5 font-weight-bold view-title">Users</h1>
+    <UsersTable />
   </v-container>
 </template>
 

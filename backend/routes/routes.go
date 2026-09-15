@@ -9,17 +9,23 @@ import (
 	"github.com/go-chi/cors"
 
 	"lottery-pool-manager/handlers"
+	appMiddleware "lottery-pool-manager/middleware"
+	"lottery-pool-manager/services"
 	"lottery-pool-manager/store"
 	"lottery-pool-manager/utils"
 	"time"
 )
 
 func Setup(s *store.PostgreSQLStore) *chi.Mux {
-	participantHandler := handlers.NewParticipantHandler(s)
 	contributionHandler := handlers.NewContributionHandler(s)
 	lotteryGameHandler := handlers.NewLotteryGameHandler(s)
 	drawHandler := handlers.NewDrawHandler(s)
 	ticketHandler := handlers.NewTicketHandler(s)
+	authHandler := handlers.NewAuthHandler(s)
+	loteriaAPIHandler := handlers.NewLoteriaAPIHandler(s)
+	checkTicketHandler := handlers.NewCheckTicketHandler(s)
+
+	authService := services.NewAuthService()
 
 	r := chi.NewRouter()
 
@@ -41,60 +47,84 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 
-	r.Route("/participants", func(r chi.Router) {
-		r.Get("/", participantHandler.List)
-		r.Get("/{id}", participantHandler.GetByID)
-		r.Post("/", participantHandler.Create)
-		r.Put("/{id}", participantHandler.Update)
-		r.Put("/{id}/activate", participantHandler.Activate)
-		r.Delete("/{id}", participantHandler.Deactivate)
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/register", authHandler.Register)
+		r.Post("/login", authHandler.Login)
+		r.Group(func(r chi.Router) {
+			r.Use(appMiddleware.Auth(authService))
+			r.Get("/me", authHandler.GetMe)
+			r.Group(func(r chi.Router) {
+				r.Use(appMiddleware.RequireAdmin)
+				r.Get("/users", authHandler.ListUsers)
+				r.Put("/users/{id}", authHandler.UpdateUser)
+				r.Put("/users/{id}/activate", authHandler.ActivateUser)
+				r.Put("/users/{id}/deactivate", authHandler.DeactivateUser)
+			})
+		})
 	})
 
 	r.Route("/contributions", func(r chi.Router) {
 		r.Get("/", contributionHandler.List)
 		r.Get("/{id}", contributionHandler.GetByID)
-		r.Post("/", contributionHandler.Create)
-		r.Put("/{id}", contributionHandler.Update)
-		r.Delete("/{id}", contributionHandler.Delete)
-		r.Get("/participant/{id}", contributionHandler.GetByParticipant)
+		r.Get("/user/{id}", contributionHandler.GetByUser)
 		r.Get("/period", contributionHandler.GetByPeriod)
+		r.Group(func(r chi.Router) {
+			r.Use(appMiddleware.Auth(authService))
+			r.Post("/", contributionHandler.Create)
+			r.Put("/{id}", contributionHandler.Update)
+			r.Delete("/{id}", contributionHandler.Delete)
+		})
 	})
 
 	r.Route("/games", func(r chi.Router) {
 		r.Get("/", lotteryGameHandler.List)
 		r.Get("/{id}", lotteryGameHandler.GetByID)
-		r.Post("/", lotteryGameHandler.Create)
-		r.Put("/{id}", lotteryGameHandler.Update)
-		r.Delete("/{id}", lotteryGameHandler.Delete)
+		r.Group(func(r chi.Router) {
+			r.Use(appMiddleware.Auth(authService))
+			r.Use(appMiddleware.RequireAdmin)
+			r.Post("/", lotteryGameHandler.Create)
+			r.Put("/{id}", lotteryGameHandler.Update)
+			r.Delete("/{id}", lotteryGameHandler.Delete)
+		})
 	})
 
 	r.Route("/draws", func(r chi.Router) {
 		r.Get("/", drawHandler.List)
 		r.Get("/{id}", drawHandler.GetByID)
-		r.Post("/", drawHandler.Create)
-		r.Put("/{id}/results", drawHandler.UpdateResults)
-		r.Put("/{id}/process", drawHandler.MarkAsProcessed)
-		r.Delete("/{id}", drawHandler.Delete)
 		r.Get("/game/{id}", drawHandler.GetByGame)
 		r.Get("/pending", drawHandler.GetPending)
+		r.Group(func(r chi.Router) {
+			r.Use(appMiddleware.Auth(authService))
+			r.Post("/", drawHandler.Create)
+			r.Put("/{id}/results", drawHandler.UpdateResults)
+			r.Put("/{id}/process", drawHandler.MarkAsProcessed)
+			r.Delete("/{id}", drawHandler.Delete)
+		})
 	})
 
 	r.Route("/tickets", func(r chi.Router) {
 		r.Get("/", ticketHandler.List)
 		r.Get("/{id}", ticketHandler.GetByID)
-		r.Post("/", ticketHandler.Create)
-		r.Put("/{id}/prize", ticketHandler.UpdatePrize)
-		r.Delete("/{id}", ticketHandler.Delete)
 		r.Get("/draw/{id}", ticketHandler.GetByDraw)
+		r.Group(func(r chi.Router) {
+			r.Use(appMiddleware.Auth(authService))
+			r.Post("/", ticketHandler.Create)
+			r.Put("/{id}/prize", ticketHandler.UpdatePrize)
+			r.Delete("/{id}", ticketHandler.Delete)
+		})
 	})
 
-	loteriaAPIHandler := handlers.NewLoteriaAPIHandler(s)
 	r.Route("/loteria-api", func(r chi.Router) {
+		r.Use(appMiddleware.Auth(authService))
+		r.Use(appMiddleware.RequireAdmin)
 		r.Post("/fetch-results", loteriaAPIHandler.FetchResults)
 	})
 
-	checkTicketHandler := handlers.NewCheckTicketHandler(s)
-	r.Post("/check-ticket", checkTicketHandler.CheckTicket)
+	r.Group(func(r chi.Router) {
+		r.Use(appMiddleware.Auth(authService))
+		r.Use(appMiddleware.RequireAdmin)
+		r.Post("/check-ticket", checkTicketHandler.CheckTicket)
+	})
 
 	return r
 }

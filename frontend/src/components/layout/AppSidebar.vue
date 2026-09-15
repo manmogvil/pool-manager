@@ -1,16 +1,26 @@
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '../../composables/useAuth'
 
-const items = [
-  { title: 'Dashboard', icon: 'mdi-home', route: '/' },
-  { title: 'Participants', icon: 'mdi-account-group', route: '/participants' },
-  { title: 'Contributions', icon: 'mdi-wallet', route: '/contributions' },
-  { title: 'Games', icon: 'mdi-ticket', route: '/games' },
-  { title: 'Draws', icon: 'mdi-calendar', route: '/draws' },
-  { title: 'Tickets', icon: 'mdi-book', route: '/tickets' }
-]
-const defaultPath = window.location.pathname;
-const activeItem = ref(defaultPath)
+const router = useRouter()
+const { user, isAdmin, logout: doLogout } = useAuth()
+
+const allItems = computed(() => [
+  { title: 'Dashboard',     icon: 'mdi-home',           route: '/',              visible: true },
+  { title: 'Users',         icon: 'mdi-account-group',  route: '/users',         visible: isAdmin.value },
+  { title: 'Contributions', icon: 'mdi-wallet',         route: '/contributions', visible: true },
+  { title: 'Games',         icon: 'mdi-ticket',         route: '/games',         visible: true },
+  { title: 'Draws',         icon: 'mdi-calendar',       route: '/draws',         visible: true },
+  { title: 'Tickets',       icon: 'mdi-book',           route: '/tickets',       visible: true },
+])
+
+const items = computed(() => allItems.value.filter(item => item.visible))
+
+function logout() {
+  doLogout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -21,9 +31,7 @@ const activeItem = ref(defaultPath)
     class="sidebar"
   >
     <div class="sidebar-logo">
-      <!-- quiero utilizar el logo de la aplicación lottery_fiends.png -->
       <img src="/lottery_friends.png" alt="Lottery Friends" class="sidebar-logo-img"/>
-
     </div>
 
     <v-divider></v-divider>
@@ -34,13 +42,30 @@ const activeItem = ref(defaultPath)
         :key="item.route"
         :prepend-icon="item.icon"
         :title="item.title"
-        :active="activeItem === item.route"
-        @click="activeItem = item.route"
         :to="item.route"
         rounded="lg"
         class="nav-item"
       ></v-list-item>
     </v-list>
+
+    <template v-slot:append>
+      <v-divider class="mb-2"></v-divider>
+      <v-list density="comfortable" nav class="sidebar-nav">
+        <v-list-item
+          v-if="user"
+          prepend-icon="mdi-account"
+          :title="user.name"
+          :subtitle="user.role"
+          class="nav-item user-info"
+        />
+        <v-list-item
+          prepend-icon="mdi-logout"
+          title="Logout"
+          @click="logout"
+          class="nav-item logout-item"
+        />
+      </v-list>
+    </template>
   </v-navigation-drawer>
 </template>
 
@@ -78,5 +103,13 @@ const activeItem = ref(defaultPath)
 .sidebar-logo-img {
   max-height: 40px;
   max-width: 100%;
+}
+
+.user-info {
+  opacity: 0.8;
+}
+
+.logout-item {
+  color: #ef4444 !important;
 }
 </style>
