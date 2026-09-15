@@ -6,7 +6,7 @@ A personal web application designed to manage a group of people who participate 
 
 ## Overview
 
-This application simplifies the management of lottery pools by tracking participants, contributions, tickets, draws, and prizes. The project focuses on building a clean, maintainable backend architecture while learning Go best practices.
+This application simplifies the management of lottery pools by tracking users, contributions, tickets, draws, and prizes. The project focuses on building a clean, maintainable backend architecture while learning Go best practices.
 
 ---
 
@@ -17,6 +17,8 @@ This application simplifies the management of lottery pools by tracking particip
 - Chi (HTTP router)
 - PostgreSQL
 - pgx (database driver)
+- JWT authentication (golang-jwt)
+- bcrypt password hashing
 - Unit & integration tests (Go `testing` package)
 
 **Frontend**
@@ -41,17 +43,20 @@ lottery-pool-manager/
 │   ├── .env.example            # Environment template
 │   ├── routes/                 # Route definitions
 │   ├── handlers/               # HTTP request handlers
+│   │   ├── auth.go             # Auth handler (register, login, users)
 │   │   ├── check_ticket.go     # Ticket verification handler
 │   │   ├── loteria_api.go      # Loteria API handler
 │   │   └── tests/              # Handler unit tests
-│   ├── services/               # External API clients
+│   ├── middleware/             # Auth & admin middleware
+│   ├── services/               # Business logic & external API clients
+│   │   ├── auth.go             # Password hashing, JWT generation
 │   │   └── loteria_api.go      # Loteria API client
 │   ├── store/                  # Database operations
-│   │   └── integration_test.go # Store integration tests
+│   │   └── *_store_test.go     # Store integration tests
 │   ├── models/                 # Data structures
 │   ├── utils/                  # Shared utilities
 │   │   └── helpers_test.go     # Utils unit tests
-│   └── migrations/             # SQL schema files
+│   └── migrations/             # SQL schema files (001-006)
 ├── frontend/                   # Vue 3 application
 └── docker-compose.yml          # PostgreSQL setup
 ```
@@ -60,34 +65,35 @@ lottery-pool-manager/
 
 ## Features
 
-### Participants
-- Register new participants
-- List all participants
-- Update participant information
-- Soft delete (deactivate) participants
+### Users & Authentication
+- User registration and login (JWT)
+- Role-based access control (admin / user)
+- Activate/deactivate users (admin only)
+- Edit user profile (admin only)
+- Users created inactive by default (admin must activate)
 
 ### Contributions
 - Track monthly payments per game
-- View payment history by participant
+- View payment history by user
 - Filter contributions by period
 - Support for multiple payment methods (CASH, BIZUM)
 
 ### Lottery Games
 - Define different lottery types
 - Configure draw days and ticket prices
-- Enable/disable games
+- Enable/disable games (admin only)
 
 ### Draws
 - Create draws for specific dates
 - Record official results
-- Fetch results from Loteria API
+- Fetch results from Loteria API (admin only)
 - View draws by game
 
 ### Tickets
 - Register tickets with played numbers
 - Check prizes against Loteria API
 - Track prizes and matched numbers
-- View tickets by draw
+- Cost auto-calculated from game ticket price
 
 ### Loteria API Integration
 - Fetch results by date range (Monday batch)
@@ -99,36 +105,64 @@ lottery-pool-manager/
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /health | Health check |
-| GET | /participants | List participants |
-| POST | /participants | Create participant |
-| PUT | /participants/{id} | Update participant |
-| PUT | /participants/{id}/activate | Activate participant |
-| DELETE | /participants/{id} | Deactivate participant |
-| GET | /contributions | List contributions |
-| POST | /contributions | Create contribution |
-| GET | /contributions/period | Get contributions by period |
-| GET | /contributions/participant/{id} | Get contributions by participant |
-| GET | /games | List lottery games |
-| POST | /games | Create lottery game |
-| PUT | /games/{id} | Update lottery game |
-| DELETE | /games/{id} | Delete lottery game |
-| GET | /draws | List draws |
-| POST | /draws | Create draw |
-| PUT | /draws/{id}/results | Update draw results |
-| PUT | /draws/{id}/process | Mark draw as processed |
-| DELETE | /draws/{id} | Delete draw |
-| GET | /draws/pending | Get pending draws |
-| GET | /draws/game/{id} | Get draws by game |
-| GET | /tickets | List tickets |
-| POST | /tickets | Create ticket |
-| PUT | /tickets/{id}/prize | Update ticket prize |
-| DELETE | /tickets/{id} | Delete ticket |
-| GET | /tickets/draw/{id} | Get tickets by draw |
-| POST | /loteria-api/fetch-results | Fetch results from API |
-| POST | /check-ticket | Check ticket against API |
+### Auth
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /auth/register | No | Register new user (inactive) |
+| POST | /auth/login | No | Login, returns JWT |
+| GET | /auth/me | Yes | Get current user |
+| GET | /auth/users | Admin | List all users |
+| PUT | /auth/users/{id} | Admin | Update user |
+| PUT | /auth/users/{id}/activate | Admin | Activate user |
+| PUT | /auth/users/{id}/deactivate | Admin | Deactivate user |
+
+### Contributions
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /contributions | No | List contributions |
+| GET | /contributions/{id} | No | Get contribution by ID |
+| GET | /contributions/user/{id} | No | Get contributions by user |
+| GET | /contributions/period | No | Get contributions by period |
+| POST | /contributions | Yes | Create contribution |
+| PUT | /contributions/{id} | Yes | Update contribution |
+| DELETE | /contributions/{id} | Yes | Delete contribution |
+
+### Games
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /games | No | List lottery games |
+| GET | /games/{id} | No | Get game by ID |
+| POST | /games | Admin | Create game |
+| PUT | /games/{id} | Admin | Update game |
+| DELETE | /games/{id} | Admin | Delete game |
+
+### Draws
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /draws | No | List draws |
+| GET | /draws/{id} | No | Get draw by ID |
+| GET | /draws/game/{id} | No | Get draws by game |
+| GET | /draws/pending | No | Get pending draws |
+| POST | /draws | Yes | Create draw |
+| PUT | /draws/{id}/results | Yes | Update draw results |
+| PUT | /draws/{id}/process | Yes | Mark draw as processed |
+| DELETE | /draws/{id} | Yes | Delete draw |
+
+### Tickets
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /tickets | No | List tickets |
+| GET | /tickets/{id} | No | Get ticket by ID |
+| GET | /tickets/draw/{id} | No | Get tickets by draw |
+| POST | /tickets | Yes | Create ticket |
+| PUT | /tickets/{id}/prize | Yes | Update ticket prize |
+| DELETE | /tickets/{id} | Yes | Delete ticket |
+
+### External APIs
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /loteria-api/fetch-results | Yes | Fetch results from API |
+| POST | /check-ticket | Yes | Check ticket against API |
 
 ---
 
@@ -145,7 +179,7 @@ DB_PASSWORD=lottery123
 DB_NAME=lottery_pool
 
 # Loteria API (comma-separated for fallback)
-LOTERIA_API_KEY=your_api_key_1,your_api_key_2
+LOTERIA_API_KEY=your_api_key
 
 # Server
 BASE_URL=http://localhost:8080
@@ -153,6 +187,9 @@ PORT=8080
 
 # CORS
 CORS_ORIGIN=http://localhost:5173
+
+# Auth
+JWT_SECRET=your-secret-key-change-in-production
 ```
 
 ---
@@ -224,11 +261,6 @@ go test ./... -count=1
 go test ./handlers/tests/... -run TestTicketHandler -v
 ```
 
-**Run a specific test:**
-```bash
-go test ./handlers/tests/... -run TestTicketHandler_Create_Success -v
-```
-
 > **Note:** Store tests (`./store/...`) require the PostgreSQL container running. Handler tests use mocks and don't need a database.
 
 ---
@@ -243,16 +275,18 @@ backend/
 │   └── helpers_test.go              # Utils tests (6 tests)
 ├── handlers/tests/
 │   ├── helpers_test.go              # Shared test helpers
-│   ├── mock_*_test.go              # Mocks per module (6 files)
-│   └── *_test.go                   # Handler tests (56 tests)
+│   ├── mock_*_test.go              # Mocks per module
+│   └── *_test.go                   # Handler tests
+│       ├── auth_test.go            # 18 auth tests
+│       ├── check_ticket_test.go    # 6 check ticket tests
+│       ├── loteria_api_test.go     # 3 loteria API tests
+│       ├── contributions_test.go   # Contribution tests
+│       ├── games_test.go           # Game tests
+│       ├── draws_test.go           # Draw tests
+│       └── tickets_test.go         # Ticket tests
 └── store/
     ├── setup_test.go               # Test DB setup + cleanup
-    ├── *_store_test.go             # Store tests (45 tests)
-    ├── participants_store_test.go
-    ├── games_store_test.go
-    ├── draws_store_test.go
-    ├── tickets_store_test.go
-    └── contributions_store_test.go
+    └── *_store_test.go             # Store integration tests
 ```
 
 ### How it works
@@ -261,14 +295,25 @@ backend/
 - **Store tests** create a temporary `lottery_pool_test` database, run migrations, execute tests, and drop it automatically
 - **Utils tests** are pure functions with no dependencies
 
-### Running
+### Seed Data
 
-```bash
-go test ./...                  # All tests
-go test ./store/... -v         # Store tests only
-go test ./handlers/tests/...   # Handler tests only
-go test ./... -run TestTicket  # Match by name
-```
+Migrations include seed data (`006_seed_data.sql`):
+- 5 users (1 admin active, 3 regular active, 1 inactive)
+- All passwords: `password123`
+- 3 lottery games, 6 draws, 6 contributions, 6 tickets
+
+---
+
+## Migrations
+
+| File | Description |
+|------|-------------|
+| `001_create_users.sql` | Users table with auth fields |
+| `002_create_lottery_games.sql` | Lottery games |
+| `003_create_contributions.sql` | Contributions (user_id FK) |
+| `004_create_draws.sql` | Draws with draw_id_api |
+| `005_create_tickets.sql` | Tickets |
+| `006_seed_data.sql` | Seed data for development |
 
 ---
 
@@ -281,22 +326,9 @@ This project was built to practice:
 - **Database design**: relationships, constraints, migrations
 - **Code organization**: clean architecture, separation of concerns
 - **Input validation**: request validation, error handling
-- **Testing**: unit tests (mocked store), integration tests (real PostgreSQL), Go `testing` package
+- **Authentication**: JWT tokens, bcrypt hashing, role-based access
+- **Testing**: unit tests (mocked store), integration tests (real PostgreSQL)
 - **CI/CD**: GitHub Actions pipeline for automated test execution
 - **Docker**: containerization, database setup
 - **External APIs**: integrating with third-party services
 - **Environment variables**: secure configuration management
-
----
-
-## Project Structure
-
-- **models/**: Data structures representing database entities
-- **store/**: Database operations (PostgreSQL) + integration tests
-- **handlers/**: HTTP request handlers
-  - **tests/**: Handler unit tests with mocked store
-- **services/**: External API clients (Loteria API)
-- **routes/**: API route definitions
-- **utils/**: Shared utility functions
-- **migrations/**: SQL schema files (used by app and tests)
-- **frontend/**: Vue 3 application (Vuetify)
