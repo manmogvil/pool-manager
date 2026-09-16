@@ -155,6 +155,28 @@ func (h *AuthHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	utils.RespondJSON(w, http.StatusOK, users)
 }
 
+func (h *AuthHandler) ListUserNames(w http.ResponseWriter, r *http.Request) {
+	users, err := h.store.GetAllUsers()
+	if err != nil {
+		utils.RespondError(w, http.StatusInternalServerError, "Error fetching users")
+		return
+	}
+
+	type userName struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	var result []userName
+	for _, u := range users {
+		if u.Active {
+			result = append(result, userName{ID: u.ID, Name: u.Name})
+		}
+	}
+
+	utils.RespondJSON(w, http.StatusOK, result)
+}
+
 func (h *AuthHandler) ActivateUser(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {

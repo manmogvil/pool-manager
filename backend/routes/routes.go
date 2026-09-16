@@ -54,6 +54,7 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 		r.Group(func(r chi.Router) {
 			r.Use(appMiddleware.Auth(authService))
 			r.Get("/me", authHandler.GetMe)
+			r.Get("/users/names", authHandler.ListUserNames)
 			r.Group(func(r chi.Router) {
 				r.Use(appMiddleware.RequireAdmin)
 				r.Get("/users", authHandler.ListUsers)

@@ -101,6 +101,7 @@ export const auth = {
 
 export const users = {
   getAll: () => request("/auth/users"),
+  getNames: () => request("/auth/users/names"),
   update: (id, data) =>
     request(`/auth/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   activate: (id) => request(`/auth/users/${id}/activate`, { method: "PUT" }),

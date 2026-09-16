@@ -5,12 +5,15 @@ const props = defineProps({
   visible: Boolean,
   contribution: Object,
   users: { type: Array, default: () => [] },
-  games: { type: Array, default: () => [] }
+  games: { type: Array, default: () => [] },
+  currentUser: Object
 })
 
 const emit = defineEmits(['update:visible', 'saved'])
 
 const isEditing = computed(() => !!props.contribution)
+const isAdmin = computed(() => props.currentUser?.role === 'admin')
+const userDisabled = computed(() => !isEditing.value && !isAdmin.value)
 
 const monthNames = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,7 +48,17 @@ watch(() => props.visible, (val) => {
       datePickerValue.value = isoDate ? new Date(isoDate + 'T00:00:00') : null
     } else {
       const today = formatToISO(new Date().toISOString())
-      form.value = { user_id: null, game_id: null, month: new Date().getMonth() + 1, year: new Date().getFullYear(), amount: null, paid: true, payment_date: today, payment_method: '', comments: '' }
+      form.value = {
+        user_id: isAdmin.value ? null : props.currentUser?.id || null,
+        game_id: null,
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+        amount: null,
+        paid: true,
+        payment_date: today,
+        payment_method: '',
+        comments: ''
+      }
       datePickerValue.value = new Date()
     }
   }
@@ -91,6 +104,7 @@ async function save() {
             item-value="id"
             label="User"
             variant="outlined"
+            :disabled="userDisabled"
             :rules="[v => !!v || 'Selecting a user is required']"
             class="mb-3"
           />

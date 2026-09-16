@@ -5,7 +5,7 @@ import { useAuth } from '../../composables/useAuth'
 import ContributionsFormDialog from './ContributionsFormDialog.vue'
 import ConfirmDialog from '../layout/ConfirmDialog.vue'
 
-const { isAdmin } = useAuth()
+const { isAdmin, user: currentUser } = useAuth()
 
 const contributionList = ref([])
 const userList = ref([])
@@ -25,33 +25,19 @@ const monthNames = [
 async function loadData() {
   loading.value = true
   try {
-    const [contributionData, gameData] = await Promise.all([
+    const [contributionData, gameData, namesData] = await Promise.all([
       contributionsService.getAll(),
-      gamesService.getAll()
+      gamesService.getAll(),
+      usersService.getNames()
     ])
     contributionList.value = contributionData
     gameList.value = gameData
-
-    if (isAdmin.value) {
-      try {
-        userList.value = await usersService.getAll()
-      } catch { /* non-admin, skip */ }
-    }
+    userList.value = namesData
   } catch (error) {
     showSnackbar(error.message, 'error')
   } finally {
     loading.value = false
   }
-}
-
-function getUserName(id) {
-  const user = userList.value.find(u => u.id === id)
-  return user ? user.name : `User #${id}`
-}
-
-function getGameName(id) {
-  const game = gameList.value.find(g => g.id === id)
-  return game ? game.name : `#${id}`
 }
 
 function openCreateDialog() {
@@ -107,7 +93,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="table-header" v-if="isAdmin">
+    <div class="table-header">
       <v-btn color="primary" @click="openCreateDialog">
         <v-icon start>mdi-plus</v-icon>
         Add Contribution
@@ -118,7 +104,7 @@ onMounted(() => {
       <v-data-table
         :headers="[
           { title: 'ID', key: 'id', width: '70px' },
-          { title: 'User', key: 'user_id', width: '150px' },
+          { title: 'User', key: 'user_name', width: '150px' },
           { title: 'Game', key: 'game_id', width: '120px' },
           { title: 'Period', key: 'month', width: '120px' },
           { title: 'Amount', key: 'amount', width: '100px' },
@@ -131,12 +117,12 @@ onMounted(() => {
         :loading="loading"
         striped-rows
       >
-        <template v-slot:item.user_id="{ item }">
-          {{ getUserName(item.user_id) }}
+        <template v-slot:item.user_name="{ item }">
+          {{ item.user_name || `User #${item.user_id}` }}
         </template>
 
         <template v-slot:item.game_id="{ item }">
-          {{ getGameName(item.game_id) }}
+          {{ gameList.find(g => g.id === item.game_id)?.name || `#${item.game_id}` }}
         </template>
 
         <template v-slot:item.month="{ item }">
@@ -176,6 +162,7 @@ onMounted(() => {
       :contribution="selectedContribution"
       :users="userList"
       :games="gameList"
+      :current-user="currentUser"
       @saved="handleSaved"
     />
 

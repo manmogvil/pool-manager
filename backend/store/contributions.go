@@ -29,8 +29,10 @@ func (s *PostgreSQLStore) CreateContribution(c *models.Contribution) (models.Con
 
 func (s *PostgreSQLStore) GetAllContributions() ([]models.Contribution, error) {
 	rows, err := s.pool.Query(context.Background(),
-		`SELECT id, user_id, game_id, month, year, amount, paid, payment_date, payment_method, comments, created_at
-		 FROM contributions ORDER BY year DESC, month DESC`)
+		`SELECT c.id, c.user_id, COALESCE(u.name, ''), c.game_id, c.month, c.year, c.amount, c.paid, c.payment_date, c.payment_method, c.comments, c.created_at
+		 FROM contributions c
+		 LEFT JOIN users u ON c.user_id = u.id
+		 ORDER BY c.year DESC, c.month DESC`)
 	if err != nil {
 		return nil, fmt.Errorf("error querying contributions: %w", err)
 	}
@@ -39,7 +41,7 @@ func (s *PostgreSQLStore) GetAllContributions() ([]models.Contribution, error) {
 	contributions := make([]models.Contribution, 0)
 	for rows.Next() {
 		var c models.Contribution
-		if err := rows.Scan(&c.ID, &c.UserID, &c.GameID, &c.Month, &c.Year, &c.Amount,
+		if err := rows.Scan(&c.ID, &c.UserID, &c.UserName, &c.GameID, &c.Month, &c.Year, &c.Amount,
 			&c.Paid, &c.PaymentDate, &c.PaymentMethod, &c.Comments, &c.CreatedAt); err != nil {
 			return nil, fmt.Errorf("error scanning contribution: %w", err)
 		}

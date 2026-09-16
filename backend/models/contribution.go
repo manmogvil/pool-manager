@@ -8,6 +8,7 @@ import (
 type Contribution struct {
 	ID            int        `json:"id"`
 	UserID        int        `json:"user_id"`
+	UserName      string     `json:"user_name,omitempty"`
 	GameID        int        `json:"game_id"`
 	Month         int        `json:"month"`
 	Year          int        `json:"year"`
