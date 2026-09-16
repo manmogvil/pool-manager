@@ -317,6 +317,48 @@ Migrations include seed data (`006_seed_data.sql`):
 
 ---
 
+## Deployment
+
+### Architecture
+
+| Service | Technology | Purpose |
+|---------|-----------|---------|
+| Frontend | Vercel | Vue.js SPA hosting |
+| Backend | Render | Go API server |
+| Database | Supabase | PostgreSQL (managed) |
+
+### Commands
+
+| Command | Context | Description |
+|---------|---------|-------------|
+| `go run main.go` | Local dev | Start server only |
+| `go run ./cmd/migrate` | Local setup | Run migrations only |
+| `./server` | Production | Start server only |
+| `./migrate` | Production | Run migrations only |
+| `./start.sh` | Docker | Run migrations + server |
+
+### Production Environment Variables
+
+| Variable | Source | Description |
+|----------|--------|-------------|
+| `DB_HOST` | Supabase | `db.xxx.supabase.co` |
+| `DB_PORT` | Supabase | `5432` |
+| `DB_USER` | Supabase | `postgres` |
+| `DB_PASSWORD` | Supabase | Project password |
+| `DB_NAME` | Supabase | `postgres` |
+| `JWT_SECRET` | Generate | `openssl rand -hex 32` |
+| `CORS_ORIGIN` | Vercel URL | `https://app.vercel.app` |
+| `LOTERIA_API_KEY` | Your keys | Comma-separated |
+| `PORT` | Render | `8080` |
+
+### Deployment Steps
+
+1. **Supabase** — Create project, copy connection string
+2. **Render** — Create Web Service, set Docker, add env vars
+3. **Vercel** — Import repo, set `VITE_API_URL`
+
+---
+
 ## Learning Goals
 
 This project was built to practice:

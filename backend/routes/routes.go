@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -33,7 +34,7 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{utils.GetEnv("CORS_ORIGIN", "http://localhost:5173")},
+		AllowedOrigins:   strings.Split(utils.GetEnv("CORS_ORIGIN", "http://localhost:5173"), ","),
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		ExposedHeaders:   []string{"Link"},
