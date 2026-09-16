@@ -295,13 +295,6 @@ backend/
 - **Store tests** create a temporary `lottery_pool_test` database, run migrations, execute tests, and drop it automatically
 - **Utils tests** are pure functions with no dependencies
 
-### Seed Data
-
-Migrations include seed data (`006_seed_data.sql`):
-- 5 users (1 admin active, 3 regular active, 1 inactive)
-- All passwords: `password123`
-- 3 lottery games, 6 draws, 6 contributions, 6 tickets
-
 ---
 
 ## Migrations
@@ -313,7 +306,16 @@ Migrations include seed data (`006_seed_data.sql`):
 | `003_create_contributions.sql` | Contributions (user_id FK) |
 | `004_create_draws.sql` | Draws with draw_id_api |
 | `005_create_tickets.sql` | Tickets |
-| `006_seed_data.sql` | Seed data for development |
+
+To run migrations:
+
+```bash
+# Local development
+go run ./cmd/migrate
+
+# Production (Docker)
+./migrate
+```
 
 ---
 

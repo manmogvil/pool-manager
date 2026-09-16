@@ -3,6 +3,7 @@ backend/.env
 
 # Go
 backend/server
+backend/migrate
 backend/*.exe
 
 # Node
