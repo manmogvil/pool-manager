@@ -197,7 +197,7 @@ JWT_SECRET=your-secret-key-change-in-production
 ## Getting Started
 
 ### Prerequisites
-- Go 1.21+
+- Go 1.27+
 - Docker & Docker Compose
 - Node.js 18+
 
