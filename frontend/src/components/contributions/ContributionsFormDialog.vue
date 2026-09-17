@@ -90,7 +90,7 @@ async function save() {
 </script>
 
 <template>
-  <v-dialog :model-value="visible" @update:model-value="close" max-width="550" persistent>
+  <v-dialog :model-value="visible" @update:model-value="close" max-width="420" persistent>
     <v-card>
       <v-card-title class="text-h6">
         {{ isEditing ? 'Edit Contribution' : 'New Contribution' }}
@@ -104,9 +104,10 @@ async function save() {
             item-value="id"
             label="User"
             variant="outlined"
+            density="compact"
             :disabled="userDisabled"
             :rules="[v => !!v || 'Selecting a user is required']"
-            class="mb-3"
+            class="mb-2"
           />
           <v-select
             v-model="form.game_id"
@@ -115,8 +116,9 @@ async function save() {
             item-value="id"
             label="Game"
             variant="outlined"
+            density="compact"
             :rules="[v => !!v || 'Selecting a game is required']"
-            class="mb-3"
+            class="mb-2"
           />
           <v-row>
             <v-col cols="6">
@@ -127,6 +129,7 @@ async function save() {
                 item-value="value"
                 label="Month"
                 variant="outlined"
+                density="compact"
                 :rules="[v => !!v || 'Month is required']"
               />
             </v-col>
@@ -136,6 +139,7 @@ async function save() {
                 label="Year"
                 type="number"
                 variant="outlined"
+                density="compact"
                 :rules="[
                   v => !!v || 'Year is required',
                   v => v >= 2020 || 'Year must be 2020 or later'
@@ -143,47 +147,68 @@ async function save() {
               />
             </v-col>
           </v-row>
-          <v-text-field
-            v-model.number="form.amount"
-            label="Amount"
-            type="number"
-            prefix="€"
-            variant="outlined"
-            :rules="[
-              v => !!v || 'Amount is required',
-              v => v > 0 || 'Amount must be greater than 0'
-            ]"
-            class="mb-3"
-          />
-          <v-select
-            v-model="form.payment_method"
-            :items="['CASH', 'BIZUM']"
-            label="Payment Method"
-            variant="outlined"
-            clearable
-            class="mb-3"
-          />
-          <v-menu v-model="dateMenu" :close-on-content-click="false" location="bottom">
-            <template v-slot:activator="{ props }">
+          <v-row dense>
+            <v-col cols="6">
               <v-text-field
-                :model-value="formatDisplay(form.payment_date)"
-                label="Payment Date"
+                v-model.number="form.amount"
+                label="Amount"
+                type="number"
+                prefix="€"
                 variant="outlined"
-                readonly
-                class="mb-3"
-                v-bind="props"
+                density="compact"
+                :rules="[
+                  v => !!v || 'Amount is required',
+                  v => v > 0 || 'Amount must be greater than 0'
+                ]"
               />
-            </template>
-            <v-date-picker
-              v-model="datePickerValue"
-              @update:model-value="onDateSelect"
-              color="primary"
-            />
-          </v-menu>
+            </v-col>
+            <v-col cols="6">
+              <v-select
+                v-model="form.payment_method"
+                :items="['CASH', 'BIZUM']"
+                label="Method"
+                variant="outlined"
+                density="compact"
+                clearable
+              />
+            </v-col>
+          </v-row>
+          <v-row dense align="center">
+            <v-col cols="8">
+              <v-menu v-model="dateMenu" :close-on-content-click="false" location="bottom">
+                <template v-slot:activator="{ props }">
+                  <v-text-field
+                    :model-value="formatDisplay(form.payment_date)"
+                    label="Payment Date"
+                    variant="outlined"
+                    density="compact"
+                    readonly
+                    v-bind="props"
+                  />
+                </template>
+                <v-date-picker
+                  v-model="datePickerValue"
+                  @update:model-value="onDateSelect"
+                  color="primary"
+                />
+              </v-menu>
+            </v-col>
+            <v-col cols="4" class="d-flex justify-center align-center">
+              <v-checkbox
+                v-model="form.paid"
+                label="Paid"
+                color="success"
+                density="compact"
+                hide-details
+                class="mt-n5"
+              />
+            </v-col>
+          </v-row>
           <v-textarea
             v-model="form.comments"
             label="Comments"
             variant="outlined"
+            density="compact"
             rows="2"
             auto-grow
           />
