@@ -4,9 +4,9 @@
       <v-avatar :color="color" size="48" class="mr-4">
         <v-icon :icon="icon" color="white" size="24" />
       </v-avatar>
-      <div>
+      <div class="stat-value-wrapper">
         <div class="text-caption text-grey mb-1">{{ title }}</div>
-        <div class="text-h5 font-weight-bold">{{ value }}</div>
+        <div class="stat-value text-h5 font-weight-bold">{{ value }}</div>
       </div>
     </v-card-text>
   </v-card>
@@ -28,5 +28,19 @@ defineProps({
 }
 .stat-card:hover {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.stat-value-wrapper {
+  overflow: hidden;
+  min-width: 0;
+}
+.stat-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 599px) {
+  .stat-value {
+    font-size: 1.1rem !important;
+  }
 }
 </style>

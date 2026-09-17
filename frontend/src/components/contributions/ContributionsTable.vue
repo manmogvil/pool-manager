@@ -101,7 +101,8 @@ onMounted(() => {
     </div>
 
     <v-card>
-      <v-data-table
+      <div class="table-responsive">
+        <v-data-table
         :headers="[
           { title: 'ID', key: 'id', width: '70px' },
           { title: 'User', key: 'user_name', width: '150px' },
@@ -155,6 +156,7 @@ onMounted(() => {
           <v-btn icon="mdi-delete" variant="text" size="small" color="error" @click="confirmDelete(item)" />
         </template>
       </v-data-table>
+      </div>
     </v-card>
 
     <ContributionsFormDialog
@@ -183,6 +185,13 @@ onMounted(() => {
 .table-header {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 16px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

@@ -118,12 +118,15 @@ async function handleRegister() {
 <style scoped>
 .login-bg {
   background: #f8f9fa;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
 }
 .login-card {
   border-radius: 12px;
+  margin: 16px;
 }
 </style>

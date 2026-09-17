@@ -20,3 +20,25 @@ body {
   --color-text-secondary: #666666;
   --color-border: #e5e7eb;
 }
+
+.view-container {
+  padding: 24px;
+}
+
+@media (max-width: 959px) {
+  .view-container {
+    padding: 16px;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 599px) {
+  .v-dialog {
+    margin: 16px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+}

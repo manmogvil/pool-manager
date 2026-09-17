@@ -80,7 +80,8 @@ onMounted(() => {
 <template>
   <div>
     <v-card>
-      <v-data-table
+      <div class="table-responsive">
+        <v-data-table
         :headers="[
           { title: 'ID', key: 'id', width: '70px' },
           { title: 'Name', key: 'name' },
@@ -123,6 +124,7 @@ onMounted(() => {
           <v-btn icon="mdi-pencil" variant="text" size="small" @click="openEditDialog(item)" />
         </template>
       </v-data-table>
+      </div>
     </v-card>
 
     <v-dialog v-model="dialogVisible" max-width="450" persistent>
@@ -167,3 +169,10 @@ onMounted(() => {
     </v-snackbar>
   </div>
 </template>
+
+<style scoped>
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+</style>

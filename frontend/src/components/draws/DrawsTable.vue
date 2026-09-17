@@ -130,7 +130,8 @@ onMounted(() => {
     </div>
 
     <v-card>
-      <v-data-table
+      <div class="table-responsive">
+        <v-data-table
         :headers="[
           { title: 'ID', key: 'id', width: '70px' },
           { title: 'Game', key: 'game_id', width: '120px' },
@@ -174,6 +175,7 @@ onMounted(() => {
           </v-tooltip>
         </template>
       </v-data-table>
+      </div>
     </v-card>
 
     <DrawsFormDialog
@@ -205,6 +207,13 @@ onMounted(() => {
 .table-header {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 16px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

@@ -19,4 +19,10 @@ const { isAuthenticated } = useAuth()
   background: #f8f9fa;
   margin-left: 56px;
 }
+
+@media (max-width: 959px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
 </style>

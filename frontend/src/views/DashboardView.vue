@@ -143,11 +143,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.view-container {
-  padding: 24px 32px 24px 0px !important;
-  max-width: 100%;
-}
-
 .view-title {
   margin-bottom: 24px;
 }

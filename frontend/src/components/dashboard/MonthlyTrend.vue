@@ -45,7 +45,8 @@ const getBarHeight = (total) => {
   border: 1px solid #e8e8e8;
 }
 .bar {
-  width: 32px;
+  width: 100%;
+  max-width: 40px;
   background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
   border-radius: 4px 4px 0 0;
   min-height: 4px;
@@ -53,6 +54,14 @@ const getBarHeight = (total) => {
 }
 .bar-wrapper {
   flex: 1;
-  max-width: 60px;
+  min-width: 40px;
+}
+@media (max-width: 599px) {
+  .bar {
+    max-width: 28px;
+  }
+  .bar-wrapper {
+    min-width: 32px;
+  }
 }
 </style>

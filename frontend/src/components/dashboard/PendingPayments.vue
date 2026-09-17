@@ -9,7 +9,8 @@
       </v-chip>
     </v-card-title>
     <v-card-text class="pa-0">
-      <v-table v-if="payments.length" density="compact">
+      <div v-if="payments.length" class="table-responsive">
+        <v-table density="compact">
         <thead>
           <tr>
             <th>User</th>
@@ -27,6 +28,7 @@
           </tr>
         </tbody>
       </v-table>
+      </div>
       <div v-else class="pa-6 text-center text-grey">
         <v-icon icon="mdi-check-circle-outline" size="48" color="success" class="mb-2" />
         <div>All payments up to date!</div>
@@ -47,5 +49,10 @@ const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
 <style scoped>
 .section-card {
   border: 1px solid #e8e8e8;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

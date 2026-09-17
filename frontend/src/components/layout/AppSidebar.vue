@@ -1,10 +1,14 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import { useAuth } from '../../composables/useAuth'
 
 const router = useRouter()
 const { user, isAdmin, logout: doLogout } = useAuth()
+const { mobile } = useDisplay()
+
+const drawer = ref(false)
 
 const allItems = computed(() => [
   { title: 'Dashboard',     icon: 'mdi-home',           route: '/',              visible: true },
@@ -21,11 +25,27 @@ function logout() {
   doLogout()
   router.push('/login')
 }
+
+watch(() => router.currentRoute.value.path, () => {
+  if (mobile.value) drawer.value = false
+})
 </script>
 
 <template>
+  <v-btn
+    v-if="mobile"
+    icon="mdi-menu"
+    variant="text"
+    size="small"
+    class="menu-btn"
+    @click="drawer = !drawer"
+  />
+
   <v-navigation-drawer
-    rail
+    v-model="drawer"
+    :rail="!mobile"
+    :temporary="mobile"
+    :permanent="!mobile"
     expand-on-hover
     width="250"
     class="sidebar"
@@ -73,6 +93,15 @@ function logout() {
 .sidebar {
   background: #ffffff !important;
   border-right: 1px solid #e5e7eb !important;
+}
+
+.menu-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .sidebar-logo {
