@@ -1,6 +1,6 @@
-# Pool Manager
+# Lottery Pool Manager
 
-A full-stack web application for managing lottery pools — tracking users, contributions, tickets, draws, and prizes. Built to practice **Go backend development**, **PostgreSQL**, and **modern web technologies**.
+A full-stack web application born from a simple weekly tradition — a group of friends pooling money for lottery draws (once a week, a football pool or La Primitiva). One of our friends worked at a lottery administration, which made the whole process more natural. Combined with the goal of learning **Go** and understanding the **full deployment lifecycle** of a web application, this project came to life. A practical way to digitalize what we used to do on paper.
 
 ---
 
