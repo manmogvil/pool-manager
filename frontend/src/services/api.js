@@ -174,3 +174,7 @@ export const tickets = {
       body: JSON.stringify({ ticket_id: ticketId }),
     }),
 };
+
+export const dashboard = {
+  getStats: () => request("/dashboard/stats"),
+};

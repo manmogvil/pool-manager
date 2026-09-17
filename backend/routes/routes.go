@@ -25,6 +25,7 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 	authHandler := handlers.NewAuthHandler(s)
 	loteriaAPIHandler := handlers.NewLoteriaAPIHandler(s)
 	checkTicketHandler := handlers.NewCheckTicketHandler(s)
+	dashboardHandler := handlers.NewDashboardHandler(s)
 
 	authService := services.NewAuthService()
 
@@ -126,6 +127,11 @@ func Setup(s *store.PostgreSQLStore) *chi.Mux {
 		r.Use(appMiddleware.Auth(authService))
 		r.Use(appMiddleware.RequireAdmin)
 		r.Post("/check-ticket", checkTicketHandler.CheckTicket)
+	})
+
+	r.Route("/dashboard", func(r chi.Router) {
+		r.Use(appMiddleware.Auth(authService))
+		r.Get("/stats", dashboardHandler.GetStats)
 	})
 
 	return r
