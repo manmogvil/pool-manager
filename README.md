@@ -21,6 +21,7 @@ A full-stack web application born from a simple weekly tradition — a group of 
 - **Responsive Design** — Mobile-first layout with collapsable sidebar, horizontal scroll tables, and adaptive dialogs.
 - **Lotería API Integration** — Fetch draw results and check ticket prizes against the official Spanish lottery API, with dual API key fallback.
 - **Full CRUD** — Users, contributions, games, draws, and tickets with role-based permissions.
+- **Automatic Scheduler** — Optional background job that fetches draw results from the Lotería API on a configurable cron schedule. Disabled by default.
 
 ---
 
@@ -32,6 +33,7 @@ A full-stack web application born from a simple weekly tradition — a group of 
 │   ├── store/           # PostgreSQL queries + integration tests
 │   ├── models/          # Data structures
 │   ├── services/        # Business logic & external APIs
+│   ├── scheduler/       # Automatic draw result checker
 │   ├── middleware/       # JWT auth & admin guards
 │   ├── routes/          # Route definitions
 │   ├── migrations/      # SQL schema (001-005)

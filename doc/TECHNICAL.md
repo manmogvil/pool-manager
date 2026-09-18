@@ -149,3 +149,43 @@ LotteryGame ──┬──▶ Contribution
 - **Dual key support**: If first API key hits 429/403, automatically switches to next key
 - **Rate limit**: 50 requests/month, 10/minute per key
 - **Check ticket**: `POST /check-ticket` verifies a ticket against draw results from the API
+
+---
+
+## Scheduler (Automatic Draw Result Checking)
+
+Optional background job that automatically fetches draw results from the Lotería API.
+
+### Configuration
+
+```env
+SCHEDULER_ENABLED=false        # Disabled by default
+SCHEDULER_CRON=0 6 * * 1       # Cron expression (default: every Monday at 06:00)
+```
+
+Uses standard cron expressions (5 fields) via `robfig/cron` library.
+
+### Cron Examples
+
+```
+0 6 * * 1       → Every Monday at 06:00
+0 6 * * 1-5     → Weekdays at 06:00
+@every 30m      → Every 30 minutes
+0 6,18 * * 1    → Mondays at 06:00 and 18:00
+```
+
+### How it works
+
+1. On server start, if `SCHEDULER_ENABLED=true`, scheduler starts with the configured cron expression
+2. Cron triggers at the scheduled times, querying for pending draws (processed=false, date <= now)
+3. For each pending draw, calls Lotería API to fetch results
+4. Updates the draw with `result_numbers` and `result_stars`
+5. Errors are logged but don't stop the scheduler
+6. Gracefully stops on server shutdown (context cancellation)
+
+### Key points
+
+- **Disabled by default** — no impact on existing functionality
+- **Reuses existing services** — same API client and store methods as manual endpoint
+- **Optional** — application works identically without it
+- **8 test cases** covering start/stop, cron schedule, errors, shutdown, overlap
